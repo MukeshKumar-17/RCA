@@ -5,6 +5,46 @@ import { useToast } from '../../components/shared/ToastContext';
 import EmailReportModal from './EmailReportModal';
 
 /**
+ * Color helper functions for distinct visual styling
+ */
+const getSeverityStyle = (sev) => {
+  if (!sev) return 'bg-surface-variant text-on-surface-variant';
+  const s = sev.toUpperCase();
+  if (s.includes('SEV-1') || s.includes('CRITICAL')) return 'bg-error text-on-error shadow-sm';
+  if (s.includes('SEV-2') || s.includes('HIGH')) return 'bg-[#FF7A00] text-[#FFFFFF] shadow-sm';
+  if (s.includes('SEV-3') || s.includes('MEDIUM')) return 'bg-[#FFC300] text-[#332500] shadow-sm';
+  if (s.includes('SEV-4') || s.includes('LOW')) return 'bg-[#00A3FF] text-[#FFFFFF] shadow-sm';
+  return 'bg-error-container text-on-error-container';
+};
+
+const getPhaseStyle = (phase) => {
+  if (!phase) return 'bg-surface-container text-on-surface-variant border border-surface-variant';
+  const p = phase.toUpperCase();
+  if (p === 'DETECTION') return 'bg-[#FFF3E0] text-[#E65C00] border border-[#FFCC80]';
+  if (p === 'MITIGATION') return 'bg-[#E3F2FD] text-[#0277BD] border border-[#81D4FA]';
+  if (p === 'RESOLUTION') return 'bg-[#E8F5E9] text-[#2E7D32] border border-[#A5D6A7]';
+  return 'bg-surface-container text-on-surface-variant border border-surface-variant';
+};
+
+const getPhaseDotStyle = (phase) => {
+  if (!phase) return 'bg-surface-variant';
+  const p = phase.toUpperCase();
+  if (p === 'DETECTION') return 'bg-[#FF8A00]';
+  if (p === 'MITIGATION') return 'bg-[#00A3FF]';
+  if (p === 'RESOLUTION') return 'bg-primary';
+  return 'bg-surface-variant';
+};
+
+const getPriorityStyle = (priority) => {
+  if (!priority) return 'bg-surface-container-highest text-on-surface border-surface-variant';
+  const p = priority.toUpperCase();
+  if (p === 'IMMEDIATE') return 'bg-[#FFEBEE] text-[#C62828] border-[#FFCDD2]';
+  if (p === 'SHORT_TERM') return 'bg-[#FFF8E1] text-[#F57F17] border-[#FFE082]';
+  if (p === 'LONG_TERM') return 'bg-[#E0F7FA] text-[#00838F] border-[#B2EBF2]';
+  return 'bg-surface-container-highest text-on-surface border-surface-variant';
+};
+
+/**
  * ReportPage — Loads and renders a real RCA report from the backend.
  */
 export default function ReportPage() {
@@ -117,7 +157,9 @@ export default function ReportPage() {
           </span>
           <span className="px-3 py-1 bg-primary-container text-on-primary-container font-label-md text-[11px] uppercase rounded-md tracking-wider">Complete</span>
           {meta.severity && (
-            <span className="px-3 py-1 bg-error-container text-on-error-container font-label-md text-[11px] uppercase rounded-md tracking-wider">{meta.severity}</span>
+            <span className={`px-3 py-1 font-label-md text-[11px] uppercase rounded-md tracking-wider ${getSeverityStyle(meta.severity)}`}>
+              {meta.severity}
+            </span>
           )}
         </div>
         <h1 className="font-headline-lg text-[42px] text-on-surface tracking-tight leading-tight mb-3">{report.user_context || 'Root Cause Analysis Report'}</h1>
@@ -129,13 +171,13 @@ export default function ReportPage() {
       <div className="flex flex-col gap-6 stagger-in">
         {/* Executive Summary & Confidence Split */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="md:col-span-2 bento-tile p-8 flex flex-col bg-surface-container-lowest border-primary/20 relative overflow-hidden group">
+          <div className="md:col-span-2 bento-tile p-8 flex flex-col bg-gradient-to-br from-surface-container-lowest to-surface-container/30 border-primary/20 relative overflow-hidden group">
             <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl -mr-20 -mt-20 group-hover:bg-primary/10 transition-colors"></div>
             <div className="flex items-center gap-3 mb-4 relative z-10">
               <span className="material-symbols-outlined text-primary text-[24px]">summarize</span>
               <h2 className="font-label-md text-label-md uppercase tracking-wider text-outline">Executive Summary</h2>
             </div>
-            <p className="font-body-md text-[16px] text-on-surface leading-relaxed flex-1 relative z-10">
+            <p className="font-body-md text-[17px] text-on-surface leading-loose flex-1 relative z-10">
               {rca.executive_summary || 'No executive summary available.'}
             </p>
           </div>
@@ -190,8 +232,8 @@ export default function ReportPage() {
               <h2 className="font-label-md text-label-md uppercase tracking-wider text-outline">Root Cause</h2>
               <span className="ml-auto font-label-md text-[11px] text-primary bg-primary-container rounded-md px-3 py-1.5">{rootCause.confidence || 0}% confidence</span>
             </div>
-            <h3 className="font-headline-md text-[24px] text-on-surface mb-4">{rootCause.title}</h3>
-            <p className="font-body-md text-body-md text-on-surface-variant leading-relaxed mb-6">{rootCause.description}</p>
+            <h3 className="font-headline-md text-[28px] text-on-surface mb-5">{rootCause.title}</h3>
+            <p className="font-body-md text-[17px] text-on-surface leading-loose mb-8">{rootCause.description}</p>
 
             {/* Causal Chain */}
             {rootCause.causal_chain?.length > 0 && (
@@ -203,8 +245,8 @@ export default function ReportPage() {
                       <div className="w-8 h-8 rounded-full bg-surface-container-highest flex items-center justify-center shrink-0 text-on-surface text-[12px] font-bold border border-surface-variant z-10">{i + 1}</div>
                       {i < rootCause.causal_chain.length - 1 && <div className="w-px h-8 bg-surface-variant -mt-1 -mb-1"></div>}
                     </div>
-                    <div className="pb-5 pt-1">
-                      <p className="font-body-md text-[14px] text-on-surface">{step}</p>
+                    <div className="pb-6 pt-1">
+                      <p className="font-body-md text-[15px] text-on-surface leading-relaxed">{step}</p>
                     </div>
                   </div>
                 ))}
@@ -237,7 +279,7 @@ export default function ReportPage() {
                     <p className="font-label-md text-label-md text-on-surface font-bold">{cf.title}</p>
                     <span className="font-label-md text-[11px] text-secondary bg-secondary-container rounded-md px-2 py-1">{cf.confidence}%</span>
                   </div>
-                  <p className="font-body-md text-[13px] text-on-surface-variant">{cf.description}</p>
+                  <p className="font-body-md text-[15px] leading-relaxed text-on-surface-variant">{cf.description}</p>
                 </div>
               ))}
             </div>
@@ -255,25 +297,17 @@ export default function ReportPage() {
               {rcaTimeline.map((ev, i) => (
                 <div key={i} className="flex items-start gap-4">
                   <div className="flex flex-col items-center">
-                    <div className={`w-3.5 h-3.5 rounded-full shrink-0 mt-1 ring-4 ring-white ${
-                      ev.phase === 'DETECTION' ? 'bg-secondary' :
-                      ev.phase === 'MITIGATION' ? 'bg-primary' :
-                      ev.phase === 'RESOLUTION' ? 'bg-error' :
-                      'bg-surface-variant'
-                    }`}></div>
-                    {i < rcaTimeline.length - 1 && <div className="w-px h-12 bg-surface-variant"></div>}
+                    <div className={`w-3.5 h-3.5 rounded-full shrink-0 mt-1 ring-4 ring-white shadow-sm ${getPhaseDotStyle(ev.phase)}`}></div>
+                    {i < rcaTimeline.length - 1 && <div className="w-px h-16 bg-surface-variant"></div>}
                   </div>
-                  <div className="pb-5">
-                    <div className="flex items-center gap-3 mb-1">
-                      <span className="font-mono text-[11px] text-outline">{ev.timestamp?.slice(11, 19) || ''}</span>
-                      <span className={`font-label-md text-[10px] px-2 py-0.5 rounded-md uppercase ${
-                        ev.phase === 'DETECTION' ? 'bg-secondary-container text-on-secondary-container' :
-                        ev.phase === 'MITIGATION' ? 'bg-primary-container text-on-primary-container' :
-                        ev.phase === 'RESOLUTION' ? 'bg-error-container text-on-error-container' :
-                        'bg-surface-container text-on-surface-variant'
-                      }`}>{ev.phase}</span>
+                  <div className="pb-8">
+                    <div className="flex items-center gap-3 mb-2">
+                      <span className="font-mono text-[12px] text-outline font-semibold">{ev.timestamp?.slice(11, 19) || ''}</span>
+                      <span className={`font-label-md text-[10px] px-2.5 py-0.5 rounded-md uppercase ${getPhaseStyle(ev.phase)}`}>
+                        {ev.phase}
+                      </span>
                     </div>
-                    <p className="font-body-md text-[14px] text-on-surface leading-snug">{ev.event}</p>
+                    <p className="font-body-md text-[15px] text-on-surface leading-relaxed">{ev.event}</p>
                   </div>
                 </div>
               ))}
@@ -291,14 +325,12 @@ export default function ReportPage() {
             <div className="flex flex-col gap-3">
               {actionItems.map((item) => (
                 <div key={item.item_id} className="flex flex-col md:flex-row items-start gap-4 p-5 rounded-xl bg-surface-container/30 border border-surface-variant">
-                  <span className={`font-label-md text-[10px] px-3 py-1 rounded-md uppercase shrink-0 mt-0.5 border ${
-                    item.priority === 'IMMEDIATE' ? 'bg-error-container text-on-error-container border-error/30' :
-                    item.priority === 'SHORT_TERM' ? 'bg-secondary-container text-on-secondary-container border-secondary/30' :
-                    'bg-surface-container-highest text-on-surface border-surface-variant'
-                  }`}>{item.priority?.replace('_', ' ')}</span>
+                  <span className={`font-label-md text-[10px] px-3 py-1 rounded-md uppercase shrink-0 mt-0.5 border shadow-sm ${getPriorityStyle(item.priority)}`}>
+                    {item.priority?.replace('_', ' ')}
+                  </span>
                   <div className="flex-1">
-                    <p className="font-label-md text-[15px] text-on-surface mb-1">{item.title}</p>
-                    <p className="font-body-md text-[13px] text-on-surface-variant mb-3">{item.rationale}</p>
+                    <p className="font-label-md text-[16px] text-on-surface mb-2">{item.title}</p>
+                    <p className="font-body-md text-[15px] leading-relaxed text-on-surface-variant mb-4">{item.rationale}</p>
                     {item.owner_role && (
                       <div className="flex items-center gap-2">
                         <span className="material-symbols-outlined text-[14px] text-outline">person</span>
@@ -338,9 +370,9 @@ export default function ReportPage() {
               )}
               {prevention.process_improvements?.length > 0 && (
                 <div className="bg-surface-container/20 p-5 rounded-xl border border-surface-variant md:col-span-2">
-                  <h3 className="font-label-md text-[12px] uppercase tracking-wider text-outline mb-3 flex items-center gap-2"><span className="material-symbols-outlined text-[16px]">account_tree</span> Process</h3>
-                  <ul className="space-y-3">{prevention.process_improvements.map((p, i) => (
-                    <li key={i} className="font-body-md text-[14px] text-on-surface-variant flex gap-3"><span className="text-outline shrink-0 mt-0.5 material-symbols-outlined text-[16px]">check</span>{p}</li>
+                  <h3 className="font-label-md text-[12px] uppercase tracking-wider text-outline mb-4 flex items-center gap-2"><span className="material-symbols-outlined text-[16px]">account_tree</span> Process</h3>
+                  <ul className="space-y-4">{prevention.process_improvements.map((p, i) => (
+                    <li key={i} className="font-body-md text-[15px] text-on-surface-variant flex gap-3 leading-relaxed"><span className="text-outline shrink-0 mt-1 material-symbols-outlined text-[16px]">check</span>{p}</li>
                   ))}</ul>
                 </div>
               )}
