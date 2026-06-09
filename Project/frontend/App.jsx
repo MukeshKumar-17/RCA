@@ -8,12 +8,12 @@ import CopilotPage from './features/chat/CopilotPage';
 import NewScanPage from './features/scan/NewScanPage';
 
 const navItems = [
-  { path: '/', label: 'Dashboard', icon: 'dashboard', color: 'bg-mint-50' },
-  { path: '/investigate', label: 'Investigations', icon: 'troubleshoot', color: 'bg-lavender-50' },
-  { path: '/copilot', label: 'AI Copilot', icon: 'smart_toy', color: 'bg-sky-100' },
-  { path: '/history', label: 'Historical', icon: 'history', color: 'bg-violet-200/20' },
-  { path: '/knowledge', label: 'Knowledge Base', icon: 'menu_book', color: 'bg-mint-100/30' },
-  { path: '/settings', label: 'Settings', icon: 'settings', color: 'bg-surface-dim' },
+  { path: '/', label: 'Dashboard', icon: 'dashboard' },
+  { path: '/investigate', label: 'Investigations', icon: 'search_check' },
+  { path: '/copilot', label: 'AI Copilot', icon: 'smart_toy' },
+  { path: '/history', label: 'Historical', icon: 'history' },
+  { path: '/knowledge', label: 'Knowledge Base', icon: 'menu_book' },
+  { path: '/settings', label: 'Settings', icon: 'settings', isFooter: true },
 ];
 
 function AppLayout() {
@@ -23,59 +23,73 @@ function AppLayout() {
   return (
     <>
       {/* ── Sidebar ── */}
-      <nav className="w-[260px] h-screen fixed left-0 top-0 bg-white border-r border-outline-variant/50 z-50 flex flex-col hidden md:flex">
-        {/* Logo */}
-        <div className="px-5 pt-6 pb-4">
-          <Link to="/" className="flex items-center gap-3 group">
-            <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-sky-200 to-violet-400 flex items-center justify-center shadow-neo group-hover:shadow-neo-hover transition-shadow">
-              <span className="material-symbols-outlined text-white text-[20px]" style={{ fontVariationSettings: "'FILL' 1" }}>lens_blur</span>
-            </div>
-            <div>
-              <h1 className="font-headline-sm text-[18px] text-on-surface tracking-tight leading-none font-bold">RootLens</h1>
-              <span className="font-label-mono text-[10px] text-outline uppercase tracking-[0.15em] mt-0.5 block">AI Platform</span>
-            </div>
-          </Link>
+      <nav className="bg-surface border-r border-outline-variant flex flex-col h-screen py-6 px-4 space-y-8 w-64 hidden md:flex shrink-0 fixed left-0 top-0 z-50">
+        {/* Header */}
+        <div className="flex items-center space-x-3 mb-4">
+          <div className="w-10 h-10 rounded-lg bg-primary-container flex items-center justify-center">
+             <span className="material-symbols-outlined text-on-primary-container text-[20px]" style={{ fontVariationSettings: "'FILL' 1" }}>lens_blur</span>
+          </div>
+          <div>
+            <h1 className="text-headline-md font-headline-md text-on-surface leading-tight">RootLens</h1>
+            <p className="text-label-sm font-label-sm text-outline tracking-widest uppercase">AI PLATFORM</p>
+          </div>
         </div>
 
-        <div className="h-px bg-outline-variant/30 mx-5 mb-4"></div>
-
-        {/* New Scan CTA */}
-        <div className="px-4 mb-4">
-          <button
-            onClick={() => navigate('/new-scan')}
-            className="w-full bg-[#008B8B] text-white font-label-bold text-label-bold py-3 rounded-lg hover:shadow-elevated active:translate-y-0.5 transition-all flex items-center justify-center gap-2 border-2 border-black"
-          >
-            <span className="material-symbols-outlined text-[18px]">add</span>
-            New Scan
-          </button>
-        </div>
+        {/* CTA */}
+        <button
+          onClick={() => navigate('/new-scan')}
+          className="bg-primary hover:bg-[#00513e] text-on-primary w-full py-3 rounded-full flex items-center justify-center space-x-2 transition-colors duration-200"
+        >
+          <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>add</span>
+          <span className="text-label-md font-label-md">New Scan</span>
+        </button>
 
         {/* Navigation */}
-        <div className="flex flex-col flex-1 px-3 gap-0.5">
-          {navItems.map((item) => {
+        <ul className="flex-1 space-y-2 mt-6 flex flex-col">
+          {navItems.filter(i => !i.isFooter).map((item) => {
             const isActive = location.pathname === item.path || (item.path !== '/' && location.pathname.startsWith(item.path));
-            const isSettings = item.path === '/settings';
             return (
-              <NavLink
-                key={item.path}
-                to={item.path}
-                className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-[13px] font-medium tracking-wide transition-all group ${isSettings ? 'mt-auto mb-2' : ''} ${
-                  isActive
-                    ? `${item.color} text-on-surface shadow-card`
-                    : 'text-outline hover:text-on-surface hover:bg-surface-dim/50'
-                }`}
-              >
-                <span className={`material-symbols-outlined text-[20px] transition-colors ${isActive ? 'text-on-surface' : 'text-outline group-hover:text-on-surface'}`} style={isActive ? { fontVariationSettings: "'FILL' 1" } : {}}>
-                  {item.icon}
-                </span>
-                <span>{item.label}</span>
-                {item.path === '/copilot' && (
-                  <span className="ml-auto text-[9px] font-bold bg-gradient-to-r from-sky-200 to-violet-200 text-violet-400 px-1.5 py-0.5 rounded-full uppercase tracking-wider">AI</span>
-                )}
-              </NavLink>
+              <li key={item.path}>
+                <NavLink
+                  to={item.path}
+                  className={`flex items-center space-x-3 px-3 py-2.5 rounded-full transition-all duration-200 ${
+                    isActive
+                      ? 'text-on-primary-container bg-primary-container scale-95'
+                      : 'text-on-surface-variant hover:text-primary hover:bg-surface-container'
+                  }`}
+                >
+                  <span className="material-symbols-outlined">{item.icon}</span>
+                  <span className="text-label-md font-label-md">{item.label}</span>
+                  {item.path === '/copilot' && (
+                    <span className="ml-auto bg-primary-container text-on-primary-container text-[10px] font-bold px-2 py-0.5 rounded-full">AI</span>
+                  )}
+                </NavLink>
+              </li>
             );
           })}
-        </div>
+        </ul>
+
+        {/* Footer Navigation */}
+        <ul className="pt-4 border-t border-outline-variant">
+          {navItems.filter(i => i.isFooter).map((item) => {
+            const isActive = location.pathname === item.path;
+            return (
+              <li key={item.path}>
+                <NavLink
+                  to={item.path}
+                  className={`flex items-center space-x-3 px-3 py-2.5 rounded-full transition-all duration-200 ${
+                    isActive
+                      ? 'text-on-primary-container bg-primary-container'
+                      : 'text-on-surface-variant hover:text-primary hover:bg-surface-container'
+                  }`}
+                >
+                  <span className="material-symbols-outlined">{item.icon}</span>
+                  <span className="text-label-md font-label-md">{item.label}</span>
+                </NavLink>
+              </li>
+            );
+          })}
+        </ul>
       </nav>
 
       {/* ── Main Content ── */}

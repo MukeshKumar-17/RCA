@@ -42,8 +42,11 @@ dist-ssr
 __pycache__/
 *.pyc
 venv/
+.venv/
+env/
 .env
 .env.*
+!.env.example
 
 # Local data & backups
 storage/
@@ -51,3 +54,16 @@ temp/
 backend_clean/
 recovered/
 *.sql
+
+# Build outputs
+build/
+
+# PDFs & Exports
+*.pdf
+
+# OS Files
+Thumbs.db
+
+# Test Output
+.pytest_cache/
+coverage/

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { getReport } from '../../data/api';
 import { useToast } from '../../components/shared/ToastContext';
+import EmailReportModal from './EmailReportModal';
 
 /**
  * ReportPage — Loads and renders a real RCA report from the backend.
@@ -11,6 +12,7 @@ export default function ReportPage() {
   const [report, setReport] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [emailModalOpen, setEmailModalOpen] = useState(false);
   const toast = useToast();
 
   useEffect(() => {
@@ -44,13 +46,11 @@ export default function ReportPage() {
   // No incident selected
   if (!incidentId) {
     return (
-      <div className="h-full flex flex-col items-center justify-center p-12 animate-fade-in">
-        <div className="w-16 h-16 rounded-2xl bg-lavender-50 flex items-center justify-center mb-5">
-          <span className="material-symbols-outlined text-violet-200 text-[32px]" style={{ fontVariationSettings: "'FILL' 1" }}>description</span>
-        </div>
-        <h2 className="font-headline-sm text-headline-sm text-on-surface mb-2 tracking-tight">No Report Selected</h2>
+      <div className="h-full flex flex-col items-center justify-center p-12 animate-fade-in bg-surface">
+        <span className="material-symbols-outlined text-[64px] bg-gradient-to-br from-primary to-teal-400 bg-clip-text text-transparent drop-shadow-md mb-5" style={{ fontVariationSettings: "'FILL' 1" }}>description</span>
+        <h2 className="font-headline-md text-headline-md text-on-surface mb-2 tracking-tight">No Report Selected</h2>
         <p className="font-body-md text-body-md text-outline max-w-md text-center leading-relaxed">Select an incident from the Dashboard or Investigations view to see the full RCA report.</p>
-        <Link to="/" className="mt-6 bg-[#008B8B] text-white font-label-bold text-[12px] py-2.5 px-6 rounded-lg hover:shadow-elevated transition-all border-2 border-black">
+        <Link to="/" className="mt-6 bg-primary text-on-primary font-label-md text-label-md py-3 px-8 rounded-full hover:opacity-90 transition-all shadow-sm">
           Go to Dashboard
         </Link>
       </div>
@@ -60,16 +60,16 @@ export default function ReportPage() {
   // Loading skeleton
   if (loading) {
     return (
-      <div className="p-6 lg:p-8 max-w-5xl mx-auto animate-fade-in">
-        <div className="h-5 w-32 bg-surface-dim rounded mb-4 animate-pulse"></div>
-        <div className="h-10 w-96 bg-surface-dim rounded mb-2 animate-pulse"></div>
-        <div className="h-4 w-64 bg-surface-dim rounded mb-8 animate-pulse"></div>
-        <div className="bg-white rounded-xl border border-outline-variant/20 p-6 mb-5 animate-pulse">
-          <div className="h-4 w-40 bg-surface-dim rounded mb-4"></div>
-          <div className="h-16 w-full bg-surface-dim rounded"></div>
+      <div className="p-6 lg:p-8 max-w-5xl mx-auto animate-fade-in bg-surface">
+        <div className="h-6 w-40 bg-surface-container-high rounded mb-4 animate-pulse"></div>
+        <div className="h-12 w-3/4 bg-surface-container-high rounded mb-3 animate-pulse"></div>
+        <div className="h-5 w-64 bg-surface-container-high rounded mb-8 animate-pulse"></div>
+        <div className="bento-tile p-6 mb-6 animate-pulse border-none bg-surface-container-lowest shadow-sm">
+          <div className="h-5 w-48 bg-surface-container-high rounded mb-5"></div>
+          <div className="h-20 w-full bg-surface-container-high rounded"></div>
         </div>
-        <div className="grid grid-cols-4 gap-3 mb-5">
-          {[1,2,3,4].map(i => <div key={i} className="h-20 bg-surface-dim rounded-xl animate-pulse"></div>)}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+          {[1,2,3,4].map(i => <div key={i} className="h-24 bg-surface-container-lowest rounded-xl animate-pulse"></div>)}
         </div>
       </div>
     );
@@ -78,15 +78,13 @@ export default function ReportPage() {
   // Not complete yet
   if (report?.status !== 'COMPLETE') {
     return (
-      <div className="h-full flex flex-col items-center justify-center p-12 animate-fade-in">
-        <div className="w-16 h-16 rounded-2xl bg-lavender-50 flex items-center justify-center mb-5 animate-pulse-soft">
-          <span className="material-symbols-outlined text-violet-200 text-[32px] animate-spin" style={{ animationDuration: '3s' }}>progress_activity</span>
-        </div>
-        <h2 className="font-headline-sm text-headline-sm text-on-surface mb-2">Analysis In Progress</h2>
-        <p className="font-body-md text-body-md text-outline max-w-md text-center mb-4">
-          Status: {report?.status || 'Unknown'}. Evidence completeness: {report?.evidence_completeness || 0}%.
+      <div className="h-full flex flex-col items-center justify-center p-12 animate-fade-in bg-surface">
+        <span className="material-symbols-outlined text-[64px] text-primary drop-shadow-sm animate-spin mb-5" style={{ animationDuration: '2s' }}>progress_activity</span>
+        <h2 className="font-headline-md text-headline-md text-on-surface mb-2">Analysis In Progress</h2>
+        <p className="font-body-md text-body-md text-outline max-w-md text-center mb-6">
+          Status: <span className="font-bold text-on-surface">{report?.status || 'Unknown'}</span>. Evidence completeness: {report?.evidence_completeness || 0}%.
         </p>
-        <Link to={`/investigate/${incidentId}`} className="bg-[#008B8B] text-white font-label-bold text-[12px] py-2.5 px-6 rounded-lg hover:shadow-elevated transition-all border-2 border-black">
+        <Link to={`/investigate/${incidentId}`} className="bg-primary text-on-primary font-label-md text-label-md py-3 px-8 rounded-full hover:opacity-90 transition-all shadow-sm">
           View Investigation
         </Link>
       </div>
@@ -106,105 +104,107 @@ export default function ReportPage() {
   const rcaTimeline = rca.timeline || [];
 
   return (
-    <div className="h-full overflow-y-auto">
-    <div className="p-6 lg:p-8 max-w-5xl mx-auto animate-fade-in">
+    <div className="h-full overflow-y-auto bg-surface">
+    <div className="p-6 lg:p-8 max-w-[1200px] w-full mx-auto animate-fade-in">
       {/* Report Header */}
-      <div className="mb-8">
-        <div className="flex items-center gap-3 mb-4">
-          <Link to="/" className="text-outline hover:text-on-surface transition-colors">
-            <span className="material-symbols-outlined text-[18px]">arrow_back</span>
+      <div className="mb-10">
+        <div className="flex items-center gap-3 mb-5">
+          <Link to="/" className="text-outline hover:text-primary transition-colors flex items-center justify-center p-1 rounded-full hover:bg-surface-container">
+            <span className="material-symbols-outlined text-[20px]">arrow_back</span>
           </Link>
-          <span className="font-label-mono text-label-mono text-outline bg-surface-container rounded-md px-2 py-1 text-[10px] truncate max-w-[120px]">
+          <span className="font-mono text-[12px] text-outline bg-surface-container rounded-md px-2 py-1 truncate max-w-[120px]">
             {incidentId.slice(0, 8)}...
           </span>
-          <span className="px-2 py-0.5 bg-mint-50 text-sky-200 font-label-mono text-[10px] uppercase rounded-full">Complete</span>
+          <span className="px-3 py-1 bg-primary-container text-on-primary-container font-label-md text-[11px] uppercase rounded-md tracking-wider">Complete</span>
           {meta.severity && (
-            <span className="px-2 py-0.5 bg-error/10 text-error font-label-mono text-[10px] uppercase rounded-full border border-error/20">{meta.severity}</span>
+            <span className="px-3 py-1 bg-error-container text-on-error-container font-label-md text-[11px] uppercase rounded-md tracking-wider">{meta.severity}</span>
           )}
         </div>
-        <h1 className="font-headline-lg text-[36px] text-on-surface tracking-tight leading-tight mb-2">Root Cause Analysis Report</h1>
-        <p className="font-body-md text-outline">
-          {report.user_context || 'Untitled Investigation'} · Confidence: {meta.overall_confidence || rootCause.confidence || 0}%
+        <h1 className="font-headline-lg text-[42px] text-on-surface tracking-tight leading-tight mb-3">{report.user_context || 'Root Cause Analysis Report'}</h1>
+        <p className="font-body-md text-body-md text-outline flex items-center gap-2">
+          {report.user_context ? 'Investigation Details' : 'Untitled Investigation'} <span className="text-surface-variant">•</span> Confidence: {meta.overall_confidence || rootCause.confidence || 0}%
         </p>
       </div>
 
-      <div className="flex flex-col gap-5 stagger-in">
+      <div className="flex flex-col gap-6 stagger-in">
         {/* Executive Summary & Confidence Split */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-          <div className="md:col-span-2 bg-gradient-to-br from-lavender-50/50 to-mint-50/30 rounded-xl border border-outline-variant/20 p-6 shadow-card flex flex-col">
-            <div className="flex items-center gap-2 mb-3">
-              <span className="material-symbols-outlined text-violet-400 text-[18px]">summarize</span>
-              <h2 className="font-label-bold text-[13px] uppercase tracking-widest text-outline">Executive Summary</h2>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="md:col-span-2 bento-tile p-8 flex flex-col bg-surface-container-lowest border-primary/20 relative overflow-hidden group">
+            <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl -mr-20 -mt-20 group-hover:bg-primary/10 transition-colors"></div>
+            <div className="flex items-center gap-3 mb-4 relative z-10">
+              <span className="material-symbols-outlined text-primary text-[24px]">summarize</span>
+              <h2 className="font-label-md text-label-md uppercase tracking-wider text-outline">Executive Summary</h2>
             </div>
-            <p className="font-body-lg text-[15px] text-on-surface leading-relaxed flex-1">
+            <p className="font-body-md text-[16px] text-on-surface leading-relaxed flex-1 relative z-10">
               {rca.executive_summary || 'No executive summary available.'}
             </p>
           </div>
           
-          <div className="bg-white rounded-xl border border-outline-variant/20 p-6 shadow-card flex flex-col items-center justify-center text-center">
-            <h2 className="font-label-bold text-[13px] uppercase tracking-widest text-outline mb-4">Overall Confidence</h2>
-            <div className="relative mb-2">
-              <svg width="100" height="100" className="transform -rotate-90">
-                <circle cx="50" cy="50" r="42" fill="none" stroke="#edf2f7" strokeWidth="8" />
-                <circle cx="50" cy="50" r="42" fill="none" stroke="url(#conf-gradient)" strokeWidth="8"
-                  strokeDasharray={2 * Math.PI * 42} strokeDashoffset={2 * Math.PI * 42 * (1 - (meta.overall_confidence || rootCause.confidence || 0)/100)}
-                  strokeLinecap="round" className="confidence-ring" />
+          <div className="bento-tile p-8 flex flex-col items-center justify-center text-center bg-surface-container-lowest">
+            <h2 className="font-label-md text-label-md uppercase tracking-wider text-outline mb-6">Overall Confidence</h2>
+            <div className="relative mb-3">
+              <svg width="120" height="120" className="transform -rotate-90 drop-shadow-sm">
+                <circle cx="60" cy="60" r="50" fill="none" stroke="rgba(0,107,84,0.1)" strokeWidth="10" />
+                <circle cx="60" cy="60" r="50" fill="none" stroke="url(#conf-gradient)" strokeWidth="10"
+                  strokeDasharray={2 * Math.PI * 50} strokeDashoffset={2 * Math.PI * 50 * (1 - (meta.overall_confidence || rootCause.confidence || 0)/100)}
+                  strokeLinecap="round" className="confidence-ring transition-all duration-1000" />
                 <defs>
                   <linearGradient id="conf-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                    <stop offset="0%" stopColor="#69D2E7" />
-                    <stop offset="100%" stopColor="#9723C9" />
+                    <stop offset="0%" stopColor="#006b54" />
+                    <stop offset="100%" stopColor="#0dffcb" />
                   </linearGradient>
                 </defs>
               </svg>
               <div className="absolute inset-0 flex items-center justify-center flex-col">
-                <span className="font-headline-md text-[28px] text-on-surface leading-none">{meta.overall_confidence || rootCause.confidence || '—'}</span>
-                <span className="text-[11px] text-outline">%</span>
+                <span className="font-headline-lg text-[36px] text-on-surface leading-none">{meta.overall_confidence || rootCause.confidence || '—'}</span>
+                <span className="text-[14px] font-label-md text-outline">%</span>
               </div>
             </div>
-            <p className="font-body-sm text-[12px] text-outline mt-2">AI synthesis probability</p>
+            <p className="font-body-md text-body-md text-outline mt-3">AI synthesis probability</p>
           </div>
         </div>
 
         {/* Metrics Row */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {[
-            { label: 'Duration', value: meta.incident_duration || impact.duration_minutes ? `${impact.duration_minutes} min` : '—', icon: 'schedule', bg: 'bg-mint-50' },
-            { label: 'Severity', value: meta.severity || '—', icon: 'priority_high', bg: 'bg-error-container' },
-            { label: 'Services', value: `${meta.affected_services?.length || impact.services_affected?.length || 0}`, icon: 'dns', bg: 'bg-sky-100/30' },
-            { label: 'Evidence', value: `${report.evidence_completeness || 0}%`, icon: 'database', bg: 'bg-lavender-50' },
+            { label: 'Duration', value: meta.incident_duration || impact.duration_minutes ? `${impact.duration_minutes} min` : '—', icon: 'schedule', color: 'text-secondary' },
+            { label: 'Severity', value: meta.severity || '—', icon: 'priority_high', color: 'text-error' },
+            { label: 'Services', value: `${meta.affected_services?.length || impact.services_affected?.length || 0}`, icon: 'dns', color: 'text-primary' },
+            { label: 'Evidence', value: `${report.evidence_completeness || 0}%`, icon: 'database', color: 'text-on-surface' },
           ].map((m) => (
-            <div key={m.label} className={`${m.bg} rounded-xl p-4 border border-outline-variant/10 shadow-sm transition-transform hover:scale-[1.02]`}>
-              <div className="flex items-center gap-1.5 mb-2">
-                <span className="material-symbols-outlined text-[14px] text-outline">{m.icon}</span>
-                <span className="font-label-bold text-[10px] uppercase tracking-widest text-outline">{m.label}</span>
+            <div key={m.label} className="bento-tile p-5 bg-surface-container-lowest hover:shadow-md transition-shadow">
+              <div className="flex items-center gap-2 mb-3">
+                <span className={`material-symbols-outlined text-[18px] ${m.color}`}>{m.icon}</span>
+                <span className="font-label-md text-[11px] uppercase tracking-wider text-outline">{m.label}</span>
               </div>
-              <div className="font-headline-sm text-[22px] text-on-surface">{m.value}</div>
+              <div className="font-headline-md text-[26px] text-on-surface">{m.value}</div>
             </div>
           ))}
         </div>
 
         {/* Root Cause */}
         {rootCause.title && (
-          <div className="bg-white rounded-xl border border-outline-variant/20 p-6 shadow-card">
-            <div className="flex items-center gap-2 mb-4">
-              <span className="material-symbols-outlined text-error text-[18px]">target</span>
-              <h2 className="font-label-bold text-[13px] uppercase tracking-widest text-outline">Root Cause</h2>
-              <span className="ml-auto font-label-mono text-[10px] text-violet-400 bg-lavender-50 rounded px-2 py-0.5">{rootCause.confidence || 0}% confidence</span>
+          <div className="bento-tile p-8 bg-surface-container-lowest">
+            <div className="flex items-center gap-3 mb-6">
+              <span className="material-symbols-outlined text-error text-[24px]">target</span>
+              <h2 className="font-label-md text-label-md uppercase tracking-wider text-outline">Root Cause</h2>
+              <span className="ml-auto font-label-md text-[11px] text-primary bg-primary-container rounded-md px-3 py-1.5">{rootCause.confidence || 0}% confidence</span>
             </div>
-            <h3 className="font-headline-sm text-[18px] text-on-surface mb-3">{rootCause.title}</h3>
-            <p className="font-body-md text-body-md text-outline leading-relaxed mb-4">{rootCause.description}</p>
+            <h3 className="font-headline-md text-[24px] text-on-surface mb-4">{rootCause.title}</h3>
+            <p className="font-body-md text-body-md text-on-surface-variant leading-relaxed mb-6">{rootCause.description}</p>
 
             {/* Causal Chain */}
             {rootCause.causal_chain?.length > 0 && (
-              <div className="flex flex-col gap-0">
+              <div className="flex flex-col gap-0 mb-6 bg-surface-container/30 p-6 rounded-xl border border-surface-variant">
+                <h4 className="font-label-md text-label-md text-outline mb-4">Causal Chain</h4>
                 {rootCause.causal_chain.map((step, i) => (
-                  <div key={i} className="flex items-start gap-3 relative">
+                  <div key={i} className="flex items-start gap-4 relative">
                     <div className="flex flex-col items-center">
-                      <div className="w-7 h-7 rounded-full bg-gradient-to-br from-sky-200 to-violet-200 flex items-center justify-center shrink-0 text-white text-[11px] font-bold">{i + 1}</div>
-                      {i < rootCause.causal_chain.length - 1 && <div className="w-px h-6 bg-outline-variant/30"></div>}
+                      <div className="w-8 h-8 rounded-full bg-surface-container-highest flex items-center justify-center shrink-0 text-on-surface text-[12px] font-bold border border-surface-variant z-10">{i + 1}</div>
+                      {i < rootCause.causal_chain.length - 1 && <div className="w-px h-8 bg-surface-variant -mt-1 -mb-1"></div>}
                     </div>
-                    <div className="pb-4">
-                      <p className="font-body-sm text-[13px] text-on-surface">{step}</p>
+                    <div className="pb-5 pt-1">
+                      <p className="font-body-md text-[14px] text-on-surface">{step}</p>
                     </div>
                   </div>
                 ))}
@@ -213,9 +213,10 @@ export default function ReportPage() {
 
             {/* Evidence references */}
             {rootCause.evidence?.length > 0 && (
-              <div className="flex gap-1.5 mt-3 flex-wrap">
+              <div className="flex gap-2 flex-wrap">
+                <span className="font-label-md text-[11px] text-outline self-center mr-2">Evidence:</span>
                 {rootCause.evidence.map((ev) => (
-                  <span key={ev} className="font-label-mono text-[9px] text-violet-400 bg-lavender-50 rounded px-1.5 py-0.5 uppercase">{ev}</span>
+                  <span key={ev} className="font-mono text-[10px] text-secondary bg-secondary-container rounded-md px-2 py-1 uppercase">{ev}</span>
                 ))}
               </div>
             )}
@@ -224,19 +225,19 @@ export default function ReportPage() {
 
         {/* Contributing Factors */}
         {contributingFactors.length > 0 && (
-          <div className="bg-white rounded-xl border border-outline-variant/20 p-6 shadow-card">
-            <div className="flex items-center gap-2 mb-4">
-              <span className="material-symbols-outlined text-violet-200 text-[18px]">account_tree</span>
-              <h2 className="font-label-bold text-[13px] uppercase tracking-widest text-outline">Contributing Factors</h2>
+          <div className="bento-tile p-8 bg-surface-container-lowest">
+            <div className="flex items-center gap-3 mb-6">
+              <span className="material-symbols-outlined text-secondary text-[24px]">account_tree</span>
+              <h2 className="font-label-md text-label-md uppercase tracking-wider text-outline">Contributing Factors</h2>
             </div>
-            <div className="flex flex-col gap-2">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {contributingFactors.map((cf) => (
-                <div key={cf.factor_id} className="flex items-start gap-3 p-3 rounded-lg bg-surface-container/30 border border-outline-variant/10">
-                  <span className="font-label-mono text-[10px] text-violet-400 bg-lavender-50 rounded px-2 py-0.5 shrink-0 mt-0.5">{cf.confidence}%</span>
-                  <div className="flex-1">
-                    <p className="font-label-bold text-[13px] text-on-surface">{cf.title}</p>
-                    <p className="font-body-sm text-[11px] text-outline mt-0.5">{cf.description}</p>
+                <div key={cf.factor_id} className="flex flex-col p-5 rounded-xl bg-surface-container/50 border border-surface-variant hover:border-primary/30 transition-colors">
+                  <div className="flex items-center justify-between mb-2">
+                    <p className="font-label-md text-label-md text-on-surface font-bold">{cf.title}</p>
+                    <span className="font-label-md text-[11px] text-secondary bg-secondary-container rounded-md px-2 py-1">{cf.confidence}%</span>
                   </div>
+                  <p className="font-body-md text-[13px] text-on-surface-variant">{cf.description}</p>
                 </div>
               ))}
             </div>
@@ -245,34 +246,34 @@ export default function ReportPage() {
 
         {/* Timeline */}
         {rcaTimeline.length > 0 && (
-          <div className="bg-white rounded-xl border border-outline-variant/20 p-6 shadow-card">
-            <div className="flex items-center gap-2 mb-4">
-              <span className="material-symbols-outlined text-sky-200 text-[18px]">timeline</span>
-              <h2 className="font-label-bold text-[13px] uppercase tracking-widest text-outline">Incident Timeline</h2>
+          <div className="bento-tile p-8 bg-surface-container-lowest">
+            <div className="flex items-center gap-3 mb-6">
+              <span className="material-symbols-outlined text-primary text-[24px]">timeline</span>
+              <h2 className="font-label-md text-label-md uppercase tracking-wider text-outline">Incident Timeline</h2>
             </div>
-            <div className="flex flex-col gap-0">
+            <div className="flex flex-col gap-0 pl-2">
               {rcaTimeline.map((ev, i) => (
-                <div key={i} className="flex items-start gap-3">
+                <div key={i} className="flex items-start gap-4">
                   <div className="flex flex-col items-center">
-                    <div className={`w-3 h-3 rounded-full shrink-0 mt-1 ${
-                      ev.phase === 'DETECTION' ? 'bg-sky-200' :
-                      ev.phase === 'MITIGATION' ? 'bg-violet-200' :
-                      ev.phase === 'RESOLUTION' ? 'bg-emerald-400' :
-                      'bg-outline-variant'
+                    <div className={`w-3.5 h-3.5 rounded-full shrink-0 mt-1 ring-4 ring-white ${
+                      ev.phase === 'DETECTION' ? 'bg-secondary' :
+                      ev.phase === 'MITIGATION' ? 'bg-primary' :
+                      ev.phase === 'RESOLUTION' ? 'bg-error' :
+                      'bg-surface-variant'
                     }`}></div>
-                    {i < rcaTimeline.length - 1 && <div className="w-px h-8 bg-outline-variant/30"></div>}
+                    {i < rcaTimeline.length - 1 && <div className="w-px h-12 bg-surface-variant"></div>}
                   </div>
-                  <div className="pb-3">
-                    <div className="flex items-center gap-2">
-                      <span className="font-label-mono text-[10px] text-outline">{ev.timestamp?.slice(11, 19) || ''}</span>
-                      <span className={`font-label-mono text-[9px] px-1.5 py-0.5 rounded-full uppercase ${
-                        ev.phase === 'DETECTION' ? 'bg-sky-100/30 text-sky-200' :
-                        ev.phase === 'MITIGATION' ? 'bg-lavender-50 text-violet-400' :
-                        ev.phase === 'RESOLUTION' ? 'bg-mint-50 text-emerald-600' :
-                        'bg-surface-dim text-outline'
+                  <div className="pb-5">
+                    <div className="flex items-center gap-3 mb-1">
+                      <span className="font-mono text-[11px] text-outline">{ev.timestamp?.slice(11, 19) || ''}</span>
+                      <span className={`font-label-md text-[10px] px-2 py-0.5 rounded-md uppercase ${
+                        ev.phase === 'DETECTION' ? 'bg-secondary-container text-on-secondary-container' :
+                        ev.phase === 'MITIGATION' ? 'bg-primary-container text-on-primary-container' :
+                        ev.phase === 'RESOLUTION' ? 'bg-error-container text-on-error-container' :
+                        'bg-surface-container text-on-surface-variant'
                       }`}>{ev.phase}</span>
                     </div>
-                    <p className="font-body-sm text-[12px] text-on-surface mt-0.5">{ev.event}</p>
+                    <p className="font-body-md text-[14px] text-on-surface leading-snug">{ev.event}</p>
                   </div>
                 </div>
               ))}
@@ -282,23 +283,28 @@ export default function ReportPage() {
 
         {/* Action Items */}
         {actionItems.length > 0 && (
-          <div className="bg-white rounded-xl border border-outline-variant/20 p-6 shadow-card">
-            <div className="flex items-center gap-2 mb-4">
-              <span className="material-symbols-outlined text-sky-200 text-[18px]">task_alt</span>
-              <h2 className="font-label-bold text-[13px] uppercase tracking-widest text-outline">Action Items</h2>
+          <div className="bento-tile p-8 bg-surface-container-lowest">
+            <div className="flex items-center gap-3 mb-6">
+              <span className="material-symbols-outlined text-primary text-[24px]">task_alt</span>
+              <h2 className="font-label-md text-label-md uppercase tracking-wider text-outline">Action Items</h2>
             </div>
-            <div className="flex flex-col gap-2">
+            <div className="flex flex-col gap-3">
               {actionItems.map((item) => (
-                <div key={item.item_id} className="flex items-start gap-3 p-3 rounded-lg bg-surface-container/30 border border-outline-variant/10">
-                  <span className={`font-label-mono text-[9px] px-2 py-0.5 rounded-full border uppercase shrink-0 mt-0.5 ${
-                    item.priority === 'IMMEDIATE' ? 'bg-error/10 text-error border-error/20' :
-                    item.priority === 'SHORT_TERM' ? 'bg-violet-200/10 text-violet-400 border-violet-200/20' :
-                    'bg-sky-100/30 text-sky-200 border-sky-200/20'
+                <div key={item.item_id} className="flex flex-col md:flex-row items-start gap-4 p-5 rounded-xl bg-surface-container/30 border border-surface-variant">
+                  <span className={`font-label-md text-[10px] px-3 py-1 rounded-md uppercase shrink-0 mt-0.5 border ${
+                    item.priority === 'IMMEDIATE' ? 'bg-error-container text-on-error-container border-error/30' :
+                    item.priority === 'SHORT_TERM' ? 'bg-secondary-container text-on-secondary-container border-secondary/30' :
+                    'bg-surface-container-highest text-on-surface border-surface-variant'
                   }`}>{item.priority?.replace('_', ' ')}</span>
                   <div className="flex-1">
-                    <p className="font-label-bold text-[13px] text-on-surface">{item.title}</p>
-                    <p className="font-body-sm text-[11px] text-outline mt-0.5">{item.rationale}</p>
-                    {item.owner_role && <p className="font-label-mono text-[10px] text-outline mt-1">Owner: {item.owner_role}</p>}
+                    <p className="font-label-md text-[15px] text-on-surface mb-1">{item.title}</p>
+                    <p className="font-body-md text-[13px] text-on-surface-variant mb-3">{item.rationale}</p>
+                    {item.owner_role && (
+                      <div className="flex items-center gap-2">
+                        <span className="material-symbols-outlined text-[14px] text-outline">person</span>
+                        <p className="font-label-md text-[11px] text-outline uppercase tracking-wider">{item.owner_role}</p>
+                      </div>
+                    )}
                   </div>
                 </div>
               ))}
@@ -308,71 +314,112 @@ export default function ReportPage() {
 
         {/* Prevention */}
         {(prevention.detection_improvements?.length > 0 || prevention.prevention_improvements?.length > 0) && (
-          <div className="bg-white rounded-xl border border-outline-variant/20 p-6 shadow-card">
-            <div className="flex items-center gap-2 mb-4">
-              <span className="material-symbols-outlined text-emerald-500 text-[18px]">shield</span>
-              <h2 className="font-label-bold text-[13px] uppercase tracking-widest text-outline">Prevention Plan</h2>
+          <div className="bento-tile p-8 bg-surface-container-lowest">
+            <div className="flex items-center gap-3 mb-6">
+              <span className="material-symbols-outlined text-primary text-[24px]">shield</span>
+              <h2 className="font-label-md text-label-md uppercase tracking-wider text-outline">Prevention Plan</h2>
             </div>
-            {prevention.detection_improvements?.length > 0 && (
-              <div className="mb-3">
-                <h3 className="font-label-bold text-[11px] uppercase tracking-widest text-outline mb-2">Detection</h3>
-                <ul className="space-y-1">{prevention.detection_improvements.map((d, i) => (
-                  <li key={i} className="font-body-sm text-[12px] text-on-surface flex gap-2"><span className="text-sky-200 shrink-0">▪</span>{d}</li>
-                ))}</ul>
-              </div>
-            )}
-            {prevention.prevention_improvements?.length > 0 && (
-              <div className="mb-3">
-                <h3 className="font-label-bold text-[11px] uppercase tracking-widest text-outline mb-2">Prevention</h3>
-                <ul className="space-y-1">{prevention.prevention_improvements.map((p, i) => (
-                  <li key={i} className="font-body-sm text-[12px] text-on-surface flex gap-2"><span className="text-violet-200 shrink-0">▪</span>{p}</li>
-                ))}</ul>
-              </div>
-            )}
-            {prevention.process_improvements?.length > 0 && (
-              <div>
-                <h3 className="font-label-bold text-[11px] uppercase tracking-widest text-outline mb-2">Process</h3>
-                <ul className="space-y-1">{prevention.process_improvements.map((p, i) => (
-                  <li key={i} className="font-body-sm text-[12px] text-on-surface flex gap-2"><span className="text-outline shrink-0">▪</span>{p}</li>
-                ))}</ul>
-              </div>
-            )}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {prevention.detection_improvements?.length > 0 && (
+                <div className="bg-surface-container/20 p-5 rounded-xl border border-surface-variant">
+                  <h3 className="font-label-md text-[12px] uppercase tracking-wider text-outline mb-3 flex items-center gap-2"><span className="material-symbols-outlined text-[16px]">radar</span> Detection</h3>
+                  <ul className="space-y-3">{prevention.detection_improvements.map((d, i) => (
+                    <li key={i} className="font-body-md text-[14px] text-on-surface-variant flex gap-3"><span className="text-primary shrink-0 mt-0.5 material-symbols-outlined text-[16px]">check</span>{d}</li>
+                  ))}</ul>
+                </div>
+              )}
+              {prevention.prevention_improvements?.length > 0 && (
+                <div className="bg-surface-container/20 p-5 rounded-xl border border-surface-variant">
+                  <h3 className="font-label-md text-[12px] uppercase tracking-wider text-outline mb-3 flex items-center gap-2"><span className="material-symbols-outlined text-[16px]">health_and_safety</span> Prevention</h3>
+                  <ul className="space-y-3">{prevention.prevention_improvements.map((p, i) => (
+                    <li key={i} className="font-body-md text-[14px] text-on-surface-variant flex gap-3"><span className="text-secondary shrink-0 mt-0.5 material-symbols-outlined text-[16px]">check</span>{p}</li>
+                  ))}</ul>
+                </div>
+              )}
+              {prevention.process_improvements?.length > 0 && (
+                <div className="bg-surface-container/20 p-5 rounded-xl border border-surface-variant md:col-span-2">
+                  <h3 className="font-label-md text-[12px] uppercase tracking-wider text-outline mb-3 flex items-center gap-2"><span className="material-symbols-outlined text-[16px]">account_tree</span> Process</h3>
+                  <ul className="space-y-3">{prevention.process_improvements.map((p, i) => (
+                    <li key={i} className="font-body-md text-[14px] text-on-surface-variant flex gap-3"><span className="text-outline shrink-0 mt-0.5 material-symbols-outlined text-[16px]">check</span>{p}</li>
+                  ))}</ul>
+                </div>
+              )}
+            </div>
           </div>
         )}
 
         {/* What Went Well + Open Questions */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {whatWentWell.length > 0 && (
-            <div className="bg-mint-50/30 rounded-xl border border-sky-200/10 p-5">
-              <h2 className="font-label-bold text-[11px] uppercase tracking-widest text-outline mb-3">What Went Well</h2>
-              <ul className="space-y-1.5">{whatWentWell.map((w, i) => (
-                <li key={i} className="font-body-sm text-[12px] text-on-surface flex gap-2"><span className="text-emerald-400 shrink-0">✓</span>{w}</li>
+            <div className="bento-tile p-6 bg-primary-container/20 border-primary/20">
+              <h2 className="font-label-md text-[12px] uppercase tracking-wider text-on-surface mb-4 flex items-center gap-2"><span className="material-symbols-outlined text-[18px] text-primary">thumb_up</span> What Went Well</h2>
+              <ul className="space-y-3">{whatWentWell.map((w, i) => (
+                <li key={i} className="font-body-md text-[14px] text-on-surface flex gap-3"><span className="text-primary shrink-0 mt-0.5 material-symbols-outlined text-[16px]">done</span>{w}</li>
               ))}</ul>
             </div>
           )}
           {openQuestions.length > 0 && (
-            <div className="bg-lavender-50/30 rounded-xl border border-violet-200/10 p-5">
-              <h2 className="font-label-bold text-[11px] uppercase tracking-widest text-outline mb-3">Open Questions</h2>
-              <ul className="space-y-1.5">{openQuestions.map((q, i) => (
-                <li key={i} className="font-body-sm text-[12px] text-on-surface flex gap-2"><span className="text-violet-400 shrink-0">?</span>{q}</li>
+            <div className="bento-tile p-6 bg-secondary-container/20 border-secondary/20">
+              <h2 className="font-label-md text-[12px] uppercase tracking-wider text-on-surface mb-4 flex items-center gap-2"><span className="material-symbols-outlined text-[18px] text-secondary">help</span> Open Questions</h2>
+              <ul className="space-y-3">{openQuestions.map((q, i) => (
+                <li key={i} className="font-body-md text-[14px] text-on-surface flex gap-3"><span className="text-secondary shrink-0 mt-0.5 material-symbols-outlined text-[16px]">question_mark</span>{q}</li>
               ))}</ul>
             </div>
           )}
         </div>
 
         {/* Navigation */}
-        <div className="flex justify-between items-center pt-4">
-          <Link to={`/copilot/${incidentId}`} className="flex items-center gap-2 text-outline hover:text-violet-400 transition-colors font-label-bold text-[12px]">
-            <span className="material-symbols-outlined text-[16px]">smart_toy</span>
-            Ask Copilot about this RCA
-          </Link>
-          <Link to="/history" className="flex items-center gap-2 text-outline hover:text-sky-200 transition-colors font-label-bold text-[12px]">
+        <div className="flex flex-col sm:flex-row justify-between items-center gap-4 pt-6 pb-12">
+          <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
+            <button 
+              onClick={async () => {
+                try {
+                  const response = await fetch(
+                    `http://localhost:8000/api/report/${incidentId}/export-pdf`
+                  );
+                  if (!response.ok) throw new Error('PDF export failed');
+                  const blob = await response.blob();
+                  const url = window.URL.createObjectURL(blob);
+                  const a = document.createElement('a');
+                  a.href = url;
+                  a.download = `RCA_${incidentId}.pdf`;
+                  a.click();
+                  window.URL.revokeObjectURL(url);
+                } catch (err) {
+                  console.error('PDF export error:', err);
+                  alert('Failed to export PDF. Please try again.');
+                }
+              }}
+              className="bento-tile px-6 py-4 flex items-center justify-center gap-3 bg-secondary-container text-on-secondary-container hover:shadow-md transition-shadow font-label-md text-[14px]"
+            >
+              <span className="material-symbols-outlined text-[20px]">download</span>
+              Export PDF
+            </button>
+            <button
+              onClick={() => setEmailModalOpen(true)}
+              className="bento-tile px-6 py-4 flex items-center justify-center gap-3 bg-tertiary-container text-on-tertiary-container hover:shadow-md transition-shadow font-label-md text-[14px]"
+            >
+              <span className="material-symbols-outlined text-[20px]">mail</span>
+              Send to Developer
+            </button>
+            <Link to={`/copilot/${incidentId}`} className="bento-tile px-6 py-4 flex items-center justify-center gap-3 bg-primary-container text-on-primary-container hover:shadow-md transition-shadow font-label-md text-[14px]">
+              <span className="material-symbols-outlined text-[20px]">smart_toy</span>
+              Ask Copilot about this RCA
+            </Link>
+          </div>
+          <Link to="/history" className="bento-tile w-full sm:w-auto px-6 py-4 flex items-center justify-center gap-3 bg-surface-container-lowest text-on-surface hover:border-primary transition-colors font-label-md text-[14px]">
             View All Incidents
-            <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
+            <span className="material-symbols-outlined text-[20px]">arrow_forward</span>
           </Link>
         </div>
       </div>
     </div>
+    <EmailReportModal
+      isOpen={emailModalOpen}
+      onClose={() => setEmailModalOpen(false)}
+      incidentId={incidentId}
+      incidentTitle={report?.user_context || 'Untitled Investigation'}
+    />
     </div>
   );
 }

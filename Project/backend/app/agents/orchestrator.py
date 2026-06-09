@@ -5,7 +5,7 @@ Full RCA pipeline controller — runs the three specialist agents, performs
 an evidence-completeness routing check via Gemini, and synthesises the
 final RCA document.
 
-All calls use the async Gemini client (no Anthropic dependency).
+All calls use the async Gemini client (google-generativeai SDK).
 """
 
 import json
@@ -64,6 +64,8 @@ async def run(
     Steps
     -----
     1. Run all three specialist agents (log, timeline, git).
+       If any single agent fails, log the failure but continue
+       with empty output for that agent — do not abort.
     2. Ask the orchestrator LLM whether evidence is sufficient.
     3. If sufficient → run the RCA agent with all findings.
     4. Return the complete result package.
@@ -76,12 +78,20 @@ async def run(
     """
     logger.info("orchestrator: starting full pipeline")
 
-    # ── Step 1: specialist agents ──────────────────────────────────────
+    # ── Step 1: specialist agents (fault-tolerant) ─────────────────────
     logger.info("orchestrator: running log_agent")
-    log_out = await log_agent.run(raw_logs)
+    try:
+        log_out = await log_agent.run(raw_logs)
+    except Exception as exc:
+        logger.error("orchestrator: log_agent failed — %s", exc)
+        log_out = log_agent._EMPTY_RESULT
 
     logger.info("orchestrator: running timeline_agent")
-    timeline_out = await timeline_agent.run(raw_timeline, incident_date)
+    try:
+        timeline_out = await timeline_agent.run(raw_timeline, incident_date)
+    except Exception as exc:
+        logger.error("orchestrator: timeline_agent failed — %s", exc)
+        timeline_out = timeline_agent._EMPTY_RESULT
 
     # Give git_agent a one-line incident context to focus its analysis
     incident_context = (
@@ -90,7 +100,11 @@ async def run(
         else log_out.get("log_summary", {}).get("dominant_service", "")
     )
     logger.info("orchestrator: running git_agent")
-    git_out = await git_agent.run(raw_diff, incident_context)
+    try:
+        git_out = await git_agent.run(raw_diff, incident_context)
+    except Exception as exc:
+        logger.error("orchestrator: git_agent failed — %s", exc)
+        git_out = git_agent._EMPTY_RESULT
 
     # ── Step 2: MCP historical search ──────────────────────────────────
     logger.info("orchestrator: searching historical incidents via MCP")

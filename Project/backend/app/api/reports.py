@@ -80,3 +80,61 @@ async def get_similar_incidents(incident_id: str):
         "match_count": len(matches),
         "source": "mcp",
     }
+
+
+# ── GET /report/{id}/export-pdf ───────────────────────────────────────
+from fastapi.responses import Response
+from app.services.pdf_service import generate_pdf
+
+@router.get("/report/{incident_id}/export-pdf")
+async def export_report_pdf(incident_id: str):
+    """Export a completed incident report as a PDF."""
+    record = await get_incident_from_mcp(incident_id)
+
+    if not record:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Incident '{incident_id}' not found.",
+        )
+
+    # Convert the incident record into a PDF
+    pdf_bytes = await generate_pdf(record)
+
+    return Response(
+        content=pdf_bytes,
+        media_type="application/pdf",
+        headers={"Content-Disposition": f"attachment; filename=RCA_{incident_id}.pdf"}
+    )
+
+
+# ── POST /report/{id}/send-email ─────────────────────────────────────
+from app.services.email_service import send_report_email
+from app.schemas.report import EmailReportRequest
+
+@router.post("/report/{incident_id}/send-email")
+async def email_report(incident_id: str, body: EmailReportRequest):
+    """Send a completed incident report as a PDF via email."""
+    record = await get_incident_from_mcp(incident_id)
+
+    if not record:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Incident '{incident_id}' not found.",
+        )
+
+    incident_title = record.get("user_context", "Untitled Investigation")
+
+    success = await send_report_email(
+        to_email=body.to_email,
+        message=body.message,
+        report=record,
+        incident_title=incident_title,
+    )
+
+    if success:
+        return {"success": True, "sent_to": body.to_email}
+    else:
+        raise HTTPException(
+            status_code=500,
+            detail="Failed to send email. Check SendGrid API key and verified sender email.",
+        )

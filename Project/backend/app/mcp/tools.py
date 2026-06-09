@@ -2,13 +2,14 @@
 MCP Tool Definitions
 ~~~~~~~~~~~~~~~~~~~~
 High-level tool functions that the orchestrator calls during the
-RCA pipeline. Each tool wraps local storage operations
+RCA pipeline. Each tool wraps local PostgreSQL storage operations
 and returns a structured result the agents can consume.
 
 Tools
 -----
-search_historical_incidents : find similar past incidents in Inforge / local store
-save_incident_to_mcp       : persist a completed incident to Inforge / local store
+search_historical_incidents : find similar past incidents in local DB
+save_incident_to_mcp       : persist a completed incident to local DB + in-memory store
+get_incident_from_mcp      : fetch a single incident by id
 """
 
 import logging
@@ -26,7 +27,8 @@ async def search_historical_incidents(
     user_context: str,
     limit: int = 3,
 ) -> dict[str, Any]:
-    """Search for similar past incidents in Inforge, with fallback to local store.
+    """Search for similar past incidents in the local PostgreSQL database,
+    with fallback to the in-memory local store.
 
     Called by the orchestrator between the specialist agents and the
     RCA agent so that historical intelligence informs root cause analysis.
@@ -42,23 +44,18 @@ async def search_historical_incidents(
     -------
     dict
         ``{"matches": [...], "match_count": int, "search_query": str}``
-        Each match contains ``id``, ``user_context``, and ``rca``.
     """
     logger.info("mcp_tool: searching historical incidents for '%s'", user_context[:80])
 
     matches = []
     try:
         keywords = [w for w in user_context.split() if len(w) > 3]
-        search_query = " | ".join(keywords) if keywords else user_context
-        
-        response = inforge.table("incidents").select("*").text_search(
-            "searchable_text", search_query
-        ).limit(limit).execute()
-        
-        matches = response.data
-        logger.info("mcp_tool: found %d historical matches from inforge", len(matches))
+        search_query = " ".join(keywords) if keywords else user_context
+
+        matches = await inforge.search_incidents(search_query, limit=limit)
+        logger.info("mcp_tool: found %d historical matches from PostgreSQL", len(matches))
     except Exception as exc:
-        logger.warning("mcp_tool: inforge search failed, falling back to local store — %s", exc)
+        logger.warning("mcp_tool: PostgreSQL search failed, falling back to local store — %s", exc)
         matches = store.search(user_context, limit=limit)
         logger.info("mcp_tool: found %d historical matches from local store", len(matches))
 
@@ -80,7 +77,7 @@ async def save_incident_to_mcp(
     confidence_ceiling: int | None = None,
     agent_outputs: dict | None = None,
 ) -> dict[str, Any]:
-    """Persist a completed incident record to Inforge and local store.
+    """Persist a completed incident record to local PostgreSQL + in-memory store.
 
     Parameters
     ----------
@@ -105,7 +102,6 @@ async def save_incident_to_mcp(
         ``{"success": bool, "id": str, "error": str|None}``
     """
     from datetime import datetime, timezone
-    import json
 
     record = {
         "id": incident_id,
@@ -118,27 +114,35 @@ async def save_incident_to_mcp(
         "created_at": datetime.now(timezone.utc).isoformat(),
     }
 
-    # Prepare for text search in Inforge
-    searchable_parts = [user_context or "Untitled incident"]
-    if rca:
-        if isinstance(rca, dict):
-            if rca.get("root_cause"):
-                searchable_parts.append(str(rca["root_cause"].get("title", "")))
-                searchable_parts.append(str(rca["root_cause"].get("description", "")))
-            if rca.get("executive_summary"):
-                searchable_parts.append(str(rca["executive_summary"]))
-
-    inforge_record = dict(record)
-    inforge_record["searchable_text"] = " ".join(searchable_parts)
-
     error = None
+
+    # Save to PostgreSQL historical_incidents table
     try:
-        inforge.table("incidents").upsert(inforge_record).execute()
-        logger.info("mcp_tool: saved incident %s to Inforge", incident_id)
+        root_cause_title = ""
+        root_cause_desc = ""
+        exec_summary = ""
+        if rca and isinstance(rca, dict):
+            rc = rca.get("root_cause", {})
+            if isinstance(rc, dict):
+                root_cause_title = rc.get("title", "")
+                root_cause_desc = rc.get("description", "")
+            exec_summary = rca.get("executive_summary", "")
+
+        pg_data = {
+            "title": user_context or "Untitled incident",
+            "root_cause": f"{root_cause_title}: {root_cause_desc}" if root_cause_title else "Unknown",
+            "resolution": "; ".join(
+                rca.get("prevention", {}).get("prevention_improvements", [])
+            ) if rca and isinstance(rca, dict) else "",
+            "summary": exec_summary or "No summary available.",
+        }
+        await inforge.save_incident(pg_data)
+        logger.info("mcp_tool: saved incident %s to PostgreSQL", incident_id)
     except Exception as exc:
-        logger.error("mcp_tool: failed to save incident to Inforge — %s", exc)
+        logger.error("mcp_tool: failed to save incident to PostgreSQL — %s", exc)
         error = str(exc)
 
+    # Also save to in-memory store for fast lookups
     try:
         store.save(record)
         logger.info("mcp_tool: saved incident %s to local store cache", incident_id)
@@ -156,18 +160,15 @@ async def save_incident_to_mcp(
 # ── Tool: get incident from MCP ───────────────────────────────────────
 
 async def get_incident_from_mcp(incident_id: str) -> dict[str, Any] | None:
-    """Fetch a single incident by id from Inforge, fallback to local store.
+    """Fetch a single incident by id from the in-memory local store.
+
+    The in-memory store is the primary lookup for full incident records
+    (including rca, agent_outputs, etc.) since those fields aren't
+    stored in the historical_incidents table.
 
     Returns
     -------
     dict or None
         The incident record, or None if not found.
     """
-    try:
-        res = inforge.table("incidents").select("*").eq("id", incident_id).execute()
-        if res.data:
-            return res.data[0]
-    except Exception as exc:
-        logger.warning("mcp_tool: inforge get failed, falling back to local store — %s", exc)
-    
     return store.get(incident_id)

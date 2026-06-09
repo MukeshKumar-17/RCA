@@ -36,24 +36,34 @@ class Settings(BaseSettings):
         description="PostgreSQL connection string  (postgresql://user:pass@host:port/dbname)",
     )
 
-    # ── OpenRouter / AI ──────────────────────────────────────────────
-    OPENROUTER_API_KEY: str = Field(
+    # ── Gemini AI ──────────────────────────────────────────────
+    GEMINI_API_KEY: str = Field(
         ...,
-        description="API key for OpenRouter",
+        description="API key for Google Gemini",
     )
-    LLM_MODEL: str = Field(
-        default="meta-llama/llama-3.3-70b-instruct:free",
-        description="LLM model identifier to use for RCA analysis",
+    GEMINI_MODEL: str = Field(
+        default="gemini-2.5-flash",
+        description="Gemini model identifier to use for RCA analysis",
     )
 
-    # ── InsForge (MCP backend) ──────────────────────────────────────────
+    # ── Legacy (kept for backward compat, no longer used) ────
+    OPENROUTER_API_KEY: str = Field(
+        default="",
+        description="(Deprecated) API key for OpenRouter",
+    )
+    LLM_MODEL: str = Field(
+        default="gemini-2.5-flash",
+        description="(Deprecated) LLM model identifier",
+    )
+
+    # ── InsForge (Legacy — no longer used, kept for compat) ────────────
     MCP_INFORGE_URL: str = Field(
-        ...,
-        description="InsForge backend base URL (https://<app>.<region>.insforge.app)",
+        default="",
+        description="(Deprecated) InsForge backend base URL",
     )
     INFORGE_KEY: str = Field(
-        ...,
-        description="InsForge anon/service key for supabase-py client",
+        default="",
+        description="(Deprecated) InsForge anon/service key",
     )
 
     # ── File storage ────────────────────────────────────────────────────
@@ -68,6 +78,29 @@ class Settings(BaseSettings):
         description="Secret key for signing tokens / sessions",
     )
 
+    # ── Gemini Multi-Key Pool ──────────────────────────────────────────
+    GEMINI_API_KEY_1: str = Field(
+        default="",
+        description="Gemini API key #1 for round-robin pool",
+    )
+    GEMINI_API_KEY_2: str = Field(
+        default="",
+        description="Gemini API key #2 for round-robin pool",
+    )
+    GEMINI_API_KEY_3: str = Field(
+        default="",
+        description="Gemini API key #3 for round-robin pool",
+    )
+
+    # ── SendGrid Email ─────────────────────────────────────────────────
+    SENDGRID_API_KEY: str = Field(
+        default="",
+        description="SendGrid API key for sending email reports",
+    )
+    EMAIL_FROM: str = Field(
+        default="",
+        description="Verified sender email address for SendGrid",
+    )
 
 @lru_cache
 def get_settings() -> Settings:

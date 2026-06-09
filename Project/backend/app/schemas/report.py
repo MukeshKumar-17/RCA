@@ -8,7 +8,7 @@ from datetime import datetime
 from typing import Any
 from uuid import UUID
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, EmailStr
 
 
 class ReportResponse(BaseModel):
@@ -24,3 +24,11 @@ class ReportResponse(BaseModel):
     generated_at: datetime
 
     model_config = {"from_attributes": True}
+
+
+class EmailReportRequest(BaseModel):
+    """Request body for sending an RCA report via email."""
+
+    to_email: EmailStr
+    message: str = ""
+

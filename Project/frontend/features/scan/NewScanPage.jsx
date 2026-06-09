@@ -99,328 +99,281 @@ export default function NewScanPage() {
   ];
 
   return (
-    <div
-      className="flex-1 w-full flex flex-col overflow-y-auto"
-      style={{
-        backgroundImage: 'radial-gradient(#e5e7eb 1px, transparent 1px)',
-        backgroundSize: '32px 32px',
-        backgroundColor: '#f8fafc',
-      }}
-    >
-      {/* m-auto centers both axes in a flex parent; collapses to 0 when content overflows */}
-      <div className="w-full max-w-2xl m-auto px-6 py-8 flex flex-col gap-5">
-
-        {/* ── Title ── */}
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-slate-800 mb-1 tracking-tight">Analyse Incident</h1>
-          <p className="text-slate-400 text-sm">Follow the guided workflow to generate a multi-agent RCA report.</p>
+    <main className="flex-1 overflow-y-auto p-8 lg:p-12 animate-fade-in">
+      <div className="max-w-5xl mx-auto space-y-6">
+        
+        {/* Header Tile */}
+        <div className="bento-tile text-center py-8">
+          <h2 className="text-headline-lg font-headline-lg text-on-surface mb-2">Analyse Incident</h2>
+          <p className="text-body-md font-body-md text-on-surface-variant">Follow the guided workflow to generate a multi-agent RCA report.</p>
         </div>
 
-        {/* ── Stepper ── */}
-        <div className="relative flex items-start justify-between px-2" style={{ paddingBottom: '4px' }}>
-          {/* Grey track */}
-          <div className="absolute left-6 right-6 top-5 h-0.5 bg-slate-200" />
-          {/* Violet progress */}
-          <div
-            className="absolute left-6 top-5 h-0.5 bg-violet-500 transition-all duration-500"
-            style={{ width: `calc((${currentStep - 1} / 3) * (100% - 48px))` }}
-          />
-          {steps.map((step) => {
-            const isActive = currentStep === step.num;
-            const isCompleted = currentStep > step.num;
-            return (
-              <div
-                key={step.num}
-                className="flex flex-col items-center gap-1.5 cursor-pointer relative z-10"
-                style={{ width: '25%' }}
-                onClick={() => step.num < currentStep && setCurrentStep(step.num)}
-              >
-                <div
-                  className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm transition-all duration-200 ${
-                    isActive
-                      ? 'bg-violet-500 text-white shadow-md shadow-violet-200 scale-110'
-                      : isCompleted
-                      ? 'bg-violet-400 text-white'
-                      : 'bg-white text-slate-400 border-2 border-slate-200'
-                  }`}
-                >
-                  {isCompleted ? (
-                    <span className="material-symbols-outlined text-[18px]">check</span>
-                  ) : (
-                    step.num
-                  )}
-                </div>
-                <span
-                  className={`text-[10px] font-bold uppercase tracking-wider text-center leading-tight ${
-                    isActive ? 'text-violet-500' : isCompleted ? 'text-violet-400' : 'text-slate-400'
-                  }`}
-                >
-                  {step.label}
-                </span>
-              </div>
-            );
-          })}
-        </div>
-
-        {/* ── Step 1: Timeline ── */}
-        {currentStep === 1 && (
-          <div className="flex flex-col gap-4 animate-fade-in">
-            <div>
-              <label className="text-[10px] font-bold uppercase tracking-widest text-slate-500 block mb-2">
-                Incident Title (Optional)
-              </label>
-              <input
-                type="text"
-                value={userContext}
-                onChange={(e) => setUserContext(e.target.value)}
-                className="w-full bg-slate-900 text-slate-200 border-none rounded-xl py-4 px-5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 shadow-sm placeholder:text-slate-500"
-                placeholder="e.g. Database Connection Timeout"
-              />
-            </div>
-            <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-9 h-9 rounded-xl bg-sky-50 flex items-center justify-center shrink-0">
-                  <span className="material-symbols-outlined text-sky-500 text-[20px]">timeline</span>
-                </div>
-                <div>
-                  <h2 className="text-base font-bold text-slate-800 leading-tight">Timeline Information</h2>
-                  <p className="text-slate-400 text-xs mt-0.5">Provide the sequence of events that occurred during the incident.</p>
-                </div>
-              </div>
-              <textarea
-                value={timelineText}
-                onChange={(e) => setTimelineText(e.target.value)}
-                className="w-full h-32 bg-slate-50 border border-slate-200 rounded-xl p-4 text-sm text-slate-600 font-mono focus:outline-none focus:ring-2 focus:ring-violet-200 resize-none shadow-inner"
-                placeholder={'10:00 AM Deployment Started\n10:05 AM Error Rate Increased...'}
-              />
-              <div className="flex items-center justify-between mt-4">
-                <div>
-                  <input
-                    ref={timelineFileRef}
-                    type="file"
-                    className="hidden"
-                    onChange={(e) => e.target.files[0] && handleFileUpload(e.target.files[0], 'timeline')}
-                  />
-                  <button
-                    onClick={() => timelineFileRef.current.click()}
-                    className="flex items-center gap-1.5 text-xs font-bold text-slate-400 hover:text-violet-500 transition-colors uppercase tracking-wide"
+        {/* Progress Tile */}
+        <div className="bento-tile flex items-center justify-center py-10 px-8">
+          <div className="flex items-center w-full max-w-3xl relative">
+            <div className="absolute top-1/2 left-0 w-full h-0.5 bg-surface-variant -z-10 -translate-y-1/2"></div>
+            <div
+              className="absolute left-0 top-1/2 h-0.5 bg-primary transition-all duration-500 -z-10 -translate-y-1/2"
+              style={{ width: `calc((${currentStep - 1} / 3) * 100%)` }}
+            />
+            <div className="flex justify-between w-full relative z-10">
+              {steps.map((step) => {
+                const isActive = currentStep === step.num;
+                const isCompleted = currentStep > step.num;
+                return (
+                  <div
+                    key={step.num}
+                    onClick={() => step.num < currentStep && setCurrentStep(step.num)}
+                    className="flex flex-col items-center cursor-pointer"
                   >
-                    <span className="material-symbols-outlined text-[16px]">upload</span>
-                    {timelineFile || 'Upload File'}
-                  </button>
-                </div>
-                <button
-                  onClick={() => setCurrentStep(2)}
-                  className="bg-[#008B8B] hover:bg-teal-700 text-white font-bold py-2.5 px-7 rounded-full flex items-center gap-1.5 transition-colors shadow-md text-sm border-2 border-black"
-                >
-                  Continue <span className="material-symbols-outlined text-[16px]">chevron_right</span>
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* ── Step 2: Error Logs ── */}
-        {currentStep === 2 && (
-          <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 animate-fade-in">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-9 h-9 rounded-xl bg-sky-50 flex items-center justify-center shrink-0">
-                <span className="material-symbols-outlined text-sky-500 text-[20px]">terminal</span>
-              </div>
-              <div>
-                <h2 className="text-base font-bold text-slate-800 leading-tight">Error Logs</h2>
-                <p className="text-slate-400 text-xs mt-0.5">Paste or upload application logs for AI analysis.</p>
-              </div>
-            </div>
-            <textarea
-              value={logsText}
-              onChange={(e) => setLogsText(e.target.value)}
-              className="w-full h-32 bg-slate-50 border border-slate-200 rounded-xl p-4 text-sm text-slate-600 font-mono focus:outline-none focus:ring-2 focus:ring-violet-200 resize-none shadow-inner"
-              placeholder={'[ERROR] 2024-03-10 10:05:22 Database connection timeout...\n[WARN] 2024-03-10 10:05:25 Retrying connection...'}
-            />
-            <div className="flex items-center justify-between mt-4">
-              <div>
-                <input
-                  ref={logsFileRef}
-                  type="file"
-                  className="hidden"
-                  onChange={(e) => e.target.files[0] && handleFileUpload(e.target.files[0], 'logs')}
-                />
-                <button
-                  onClick={() => logsFileRef.current.click()}
-                  className="flex items-center gap-1.5 text-xs font-bold text-slate-400 hover:text-violet-500 transition-colors uppercase tracking-wide"
-                >
-                  <span className="material-symbols-outlined text-[16px]">upload</span>
-                  {logsFile || 'Upload File'}
-                </button>
-              </div>
-              <div className="flex items-center gap-5">
-                <button
-                  onClick={() => setCurrentStep(1)}
-                  className="text-sm font-bold text-slate-400 hover:text-slate-700 transition-colors"
-                >
-                  Back
-                </button>
-                <button
-                  onClick={() => setCurrentStep(3)}
-                  className="bg-[#008B8B] hover:bg-teal-700 text-white font-bold py-2.5 px-7 rounded-full flex items-center gap-1.5 transition-colors shadow-md text-sm border-2 border-black"
-                >
-                  Continue <span className="material-symbols-outlined text-[16px]">chevron_right</span>
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* ── Step 3: Git Diff ── */}
-        {currentStep === 3 && (
-          <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 animate-fade-in">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-xl bg-sky-50 flex items-center justify-center shrink-0">
-                  <span className="material-symbols-outlined text-sky-500 text-[20px]">difference</span>
-                </div>
-                <div>
-                  <h2 className="text-base font-bold text-slate-800 leading-tight">Recent Git Changes</h2>
-                  <p className="text-slate-400 text-xs mt-0.5">Paste recent code changes to help AI correlate deployment risks.</p>
-                </div>
-              </div>
-              <span className="text-[10px] font-bold uppercase tracking-wider bg-slate-100 text-slate-500 px-2.5 py-1 rounded-full shrink-0 ml-3">
-                Optional
-              </span>
-            </div>
-            <textarea
-              value={diffText}
-              onChange={(e) => setDiffText(e.target.value)}
-              className="w-full h-32 bg-slate-50 border border-slate-200 rounded-xl p-4 text-sm text-slate-600 font-mono focus:outline-none focus:ring-2 focus:ring-violet-200 resize-none shadow-inner"
-              placeholder={'commit 9d2c41a...\n--- config/database.env\n+ DB_POOL_SIZE=50'}
-            />
-            <div className="flex items-center justify-between mt-4">
-              <div>
-                <input
-                  ref={diffFileRef}
-                  type="file"
-                  className="hidden"
-                  onChange={(e) => e.target.files[0] && handleFileUpload(e.target.files[0], 'diff')}
-                />
-                <button
-                  onClick={() => diffFileRef.current.click()}
-                  className="flex items-center gap-1.5 text-xs font-bold text-slate-400 hover:text-violet-500 transition-colors uppercase tracking-wide"
-                >
-                  <span className="material-symbols-outlined text-[16px]">upload</span>
-                  {diffFile || 'Upload File'}
-                </button>
-              </div>
-              <div className="flex items-center gap-5">
-                <button
-                  onClick={() => setCurrentStep(2)}
-                  className="text-sm font-bold text-slate-400 hover:text-slate-700 transition-colors"
-                >
-                  Back
-                </button>
-                <button
-                  onClick={() => setCurrentStep(4)}
-                  className="text-sm font-bold text-slate-400 hover:text-slate-700 transition-colors"
-                >
-                  Skip
-                </button>
-                <button
-                  onClick={() => setCurrentStep(4)}
-                  className="bg-[#008B8B] hover:bg-teal-700 text-white font-bold py-2.5 px-7 rounded-full flex items-center gap-1.5 transition-colors shadow-md text-sm border-2 border-black"
-                >
-                  Continue <span className="material-symbols-outlined text-[16px]">chevron_right</span>
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* ── Step 4: Generate RCA ── */}
-        {currentStep === 4 && (
-          <div className="bg-white rounded-2xl p-10 shadow-sm border border-slate-200 animate-fade-in text-center">
-            {isGenerating ? (
-              <div className="flex flex-col items-center gap-6 py-4">
-                <div className="relative w-20 h-20 flex items-center justify-center">
-                  <div className="absolute inset-0 rounded-full bg-violet-100 animate-ping" style={{ animationDuration: '2s' }} />
-                  <div className="absolute inset-2 rounded-full bg-sky-100 animate-ping" style={{ animationDuration: '2.5s', animationDelay: '0.5s' }} />
-                  <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-sky-400 to-violet-500 flex items-center justify-center relative z-10 shadow-xl shadow-violet-200">
-                    <span className="material-symbols-outlined text-white text-[28px] animate-spin" style={{ animationDuration: '3s' }}>
-                      progress_activity
+                    <div
+                      className={`w-12 h-12 rounded-full flex items-center justify-center text-headline-md font-headline-md mb-3 transition-all duration-300 ${
+                        isActive
+                          ? 'bg-primary-container text-on-primary-container shadow-[0_0_15px_rgba(13,255,203,0.5)]'
+                          : isCompleted
+                          ? 'bg-primary text-on-primary border-2 border-primary'
+                          : 'bg-surface-container-lowest border-2 border-surface-variant text-on-surface-variant'
+                      }`}
+                    >
+                      {isCompleted ? <span className="material-symbols-outlined">check</span> : step.num}
+                    </div>
+                    <span className={`text-label-sm font-label-sm font-bold uppercase tracking-wider ${isActive ? 'text-primary' : isCompleted ? 'text-primary-fixed-dim' : 'text-outline'}`}>
+                      {step.label}
                     </span>
                   </div>
-                </div>
-                <h3 className="font-bold text-lg text-slate-800">AI Agents Working</h3>
-                <div className="bg-slate-50 rounded-xl p-5 border border-slate-100 w-full max-w-xs mx-auto text-left">
-                  <div className="flex flex-col gap-3">
-                    {stages.map((stage, idx) => {
-                      const isActive = idx === stageIndex;
-                      const isDone = idx < stageIndex;
-                      if (Math.abs(idx - stageIndex) > 1) return null;
-                      return (
-                        <div
-                          key={stage}
-                          className={`flex items-center gap-3 transition-all duration-300 ${
-                            isActive ? 'opacity-100' : isDone ? 'opacity-50' : 'opacity-30'
-                          }`}
-                        >
-                          <span
-                            className={`material-symbols-outlined text-[18px] ${
-                              isActive ? 'text-violet-500 animate-spin' : isDone ? 'text-emerald-500' : 'text-slate-300'
-                            }`}
-                            style={isActive ? { animationDuration: '2s' } : {}}
-                          >
-                            {isDone ? 'check_circle' : isActive ? 'settings' : 'radio_button_unchecked'}
-                          </span>
-                          <span
-                            className={`font-bold text-xs uppercase tracking-wider ${
-                              isActive ? 'text-slate-800' : 'text-slate-500'
-                            }`}
-                          >
-                            {stage}
-                          </span>
-                        </div>
-                      );
-                    })}
+                );
+              })}
+            </div>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 gap-6">
+          {/* ── Step 1: Timeline ── */}
+          {currentStep === 1 && (
+            <>
+              {/* Incident Title Tile */}
+              <div className="bento-tile animate-slide-up">
+                <label className="block text-label-sm font-label-sm font-bold text-on-surface-variant uppercase tracking-wider mb-3" htmlFor="incident-title">
+                  Incident Title (Optional)
+                </label>
+                <input
+                  id="incident-title"
+                  type="text"
+                  value={userContext}
+                  onChange={(e) => setUserContext(e.target.value)}
+                  className="w-full bg-inverse-surface text-inverse-on-surface placeholder-outline rounded-full px-5 py-4 focus:outline-none focus:ring-2 focus:ring-primary border-none text-body-md font-body-md shadow-inner"
+                  placeholder="e.g. Database Connection Timeout"
+                />
+              </div>
+
+              {/* Main Content Tile (Timeline) */}
+              <div className="bento-tile flex flex-col h-full animate-slide-up" style={{ animationDelay: '50ms' }}>
+                <div className="flex items-center space-x-4 mb-6">
+                  <div className="w-10 h-10 rounded-full bg-secondary-container flex items-center justify-center text-on-secondary-container">
+                    <span className="material-symbols-outlined text-[20px]">show_chart</span>
                   </div>
+                  <div>
+                    <h3 className="text-headline-md font-headline-md text-on-surface">Timeline Information</h3>
+                    <p className="text-body-md font-body-md text-on-surface-variant">Provide the sequence of events that occurred during the incident.</p>
+                  </div>
+                </div>
+                <div className="flex-1 min-h-[250px]">
+                  <textarea
+                    value={timelineText}
+                    onChange={(e) => setTimelineText(e.target.value)}
+                    className="w-full h-full p-5 bg-surface-container-lowest border-2 border-primary rounded-3xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-on-surface-variant font-mono text-sm resize-none"
+                    placeholder={'10:00 AM Deployment Started\n10:05 AM Error Rate Increased...'}
+                  />
+                </div>
+                <div className="flex items-center justify-between mt-6 pt-4 border-t border-surface-variant">
+                  <div>
+                    <input ref={timelineFileRef} type="file" className="hidden" onChange={(e) => e.target.files[0] && handleFileUpload(e.target.files[0], 'timeline')} />
+                    <button onClick={() => timelineFileRef.current.click()} className="flex items-center space-x-2 text-outline hover:text-primary transition-colors">
+                      <span className="material-symbols-outlined text-[20px]">upload</span>
+                      <span className="text-label-sm font-label-sm font-bold uppercase tracking-wider">{timelineFile || 'Upload File'}</span>
+                    </button>
+                  </div>
+                  <button onClick={() => setCurrentStep(2)} className="bg-primary hover:bg-[#00513e] text-on-primary px-8 py-3 rounded-full flex items-center space-x-2 transition-colors duration-200">
+                    <span className="text-label-md font-label-md">Continue</span>
+                    <span className="material-symbols-outlined text-[18px]">chevron_right</span>
+                  </button>
                 </div>
               </div>
-            ) : (
-              <>
-                <div className="w-14 h-14 mx-auto bg-gradient-to-br from-sky-100 to-violet-100 rounded-2xl flex items-center justify-center mb-5">
-                  <span className="material-symbols-outlined text-violet-500 text-[28px]">auto_awesome</span>
-                </div>
-                <h2 className="text-xl font-bold text-slate-800 mb-2">Ready For AI Analysis</h2>
-                <p className="text-slate-500 text-sm mb-8 max-w-sm mx-auto leading-relaxed">
-                  The Multi-Agent system will combine your timeline, error logs, and git changes to generate a structured Root Cause Analysis.
-                </p>
+            </>
+          )}
 
-                {error && (
-                  <div className="mb-6 bg-red-50 text-red-600 rounded-xl p-3.5 flex items-center justify-center gap-2 border border-red-100 max-w-sm mx-auto text-sm">
-                    <span className="material-symbols-outlined text-[18px]">error</span>
-                    <span className="font-medium">{error}</span>
+          {/* ── Step 2: Error Logs ── */}
+          {currentStep === 2 && (
+            <div className="bento-tile flex flex-col h-full animate-slide-up">
+              <div className="flex items-center space-x-4 mb-6">
+                <div className="w-10 h-10 rounded-full bg-secondary-container flex items-center justify-center text-on-secondary-container">
+                  <span className="material-symbols-outlined text-[20px]">terminal</span>
+                </div>
+                <div>
+                  <h3 className="text-headline-md font-headline-md text-on-surface">Error Logs</h3>
+                  <p className="text-body-md font-body-md text-on-surface-variant">Paste or upload application logs for AI analysis.</p>
+                </div>
+              </div>
+              <div className="flex-1 min-h-[250px]">
+                <textarea
+                  value={logsText}
+                  onChange={(e) => setLogsText(e.target.value)}
+                  className="w-full h-full p-5 bg-surface-container-lowest border-2 border-primary rounded-3xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-on-surface-variant font-mono text-sm resize-none"
+                  placeholder={'[ERROR] 2024-03-10 10:05:22 Database connection timeout...\n[WARN] 2024-03-10 10:05:25 Retrying connection...'}
+                />
+              </div>
+              <div className="flex items-center justify-between mt-6 pt-4 border-t border-surface-variant">
+                <div>
+                  <input ref={logsFileRef} type="file" className="hidden" onChange={(e) => e.target.files[0] && handleFileUpload(e.target.files[0], 'logs')} />
+                  <button onClick={() => logsFileRef.current.click()} className="flex items-center space-x-2 text-outline hover:text-primary transition-colors">
+                    <span className="material-symbols-outlined text-[20px]">upload</span>
+                    <span className="text-label-sm font-label-sm font-bold uppercase tracking-wider">{logsFile || 'Upload File'}</span>
+                  </button>
+                </div>
+                <div className="flex items-center gap-4">
+                  <button onClick={() => setCurrentStep(1)} className="text-label-md font-label-md text-outline hover:text-on-surface transition-colors px-4 py-2">
+                    Back
+                  </button>
+                  <button onClick={() => setCurrentStep(3)} className="bg-primary hover:bg-[#00513e] text-on-primary px-8 py-3 rounded-full flex items-center space-x-2 transition-colors duration-200">
+                    <span className="text-label-md font-label-md">Continue</span>
+                    <span className="material-symbols-outlined text-[18px]">chevron_right</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* ── Step 3: Git Diff ── */}
+          {currentStep === 3 && (
+            <div className="bento-tile flex flex-col h-full animate-slide-up">
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center space-x-4">
+                  <div className="w-10 h-10 rounded-full bg-secondary-container flex items-center justify-center text-on-secondary-container">
+                    <span className="material-symbols-outlined text-[20px]">difference</span>
                   </div>
-                )}
-
-                <div className="flex items-center justify-center gap-6">
-                  <button
-                    onClick={() => setCurrentStep(3)}
-                    className="text-sm font-bold text-slate-400 hover:text-slate-700 transition-colors"
-                  >
-                    Go Back
-                  </button>
-                  <button
-                    onClick={handleStartInvestigation}
-                    className="bg-[#008B8B] hover:bg-teal-700 text-white font-bold py-3 px-10 rounded-full transition-all shadow-lg active:translate-y-0.5 text-sm border-2 border-black"
-                  >
-                    Generate RCA Report
+                  <div>
+                    <h3 className="text-headline-md font-headline-md text-on-surface">Recent Git Changes</h3>
+                    <p className="text-body-md font-body-md text-on-surface-variant">Paste recent code changes to help AI correlate deployment risks.</p>
+                  </div>
+                </div>
+                <span className="text-[10px] font-bold uppercase tracking-wider bg-surface-container text-on-surface-variant px-3 py-1.5 rounded-full">
+                  Optional
+                </span>
+              </div>
+              <div className="flex-1 min-h-[250px]">
+                <textarea
+                  value={diffText}
+                  onChange={(e) => setDiffText(e.target.value)}
+                  className="w-full h-full p-5 bg-surface-container-lowest border-2 border-primary rounded-3xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-on-surface-variant font-mono text-sm resize-none"
+                  placeholder={'commit 9d2c41a...\n--- config/database.env\n+ DB_POOL_SIZE=50'}
+                />
+              </div>
+              <div className="flex items-center justify-between mt-6 pt-4 border-t border-surface-variant">
+                <div>
+                  <input ref={diffFileRef} type="file" className="hidden" onChange={(e) => e.target.files[0] && handleFileUpload(e.target.files[0], 'diff')} />
+                  <button onClick={() => diffFileRef.current.click()} className="flex items-center space-x-2 text-outline hover:text-primary transition-colors">
+                    <span className="material-symbols-outlined text-[20px]">upload</span>
+                    <span className="text-label-sm font-label-sm font-bold uppercase tracking-wider">{diffFile || 'Upload File'}</span>
                   </button>
                 </div>
-              </>
-            )}
-          </div>
-        )}
+                <div className="flex items-center gap-4">
+                  <button onClick={() => setCurrentStep(2)} className="text-label-md font-label-md text-outline hover:text-on-surface transition-colors px-4 py-2">
+                    Back
+                  </button>
+                  <button onClick={() => setCurrentStep(4)} className="text-label-md font-label-md text-outline hover:text-on-surface transition-colors px-4 py-2">
+                    Skip
+                  </button>
+                  <button onClick={() => setCurrentStep(4)} className="bg-primary hover:bg-[#00513e] text-on-primary px-8 py-3 rounded-full flex items-center space-x-2 transition-colors duration-200">
+                    <span className="text-label-md font-label-md">Continue</span>
+                    <span className="material-symbols-outlined text-[18px]">chevron_right</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
 
+          {/* ── Step 4: Generate RCA ── */}
+          {currentStep === 4 && (
+            <div className="bento-tile p-12 text-center animate-slide-up">
+              {isGenerating ? (
+                <div className="flex flex-col items-center gap-8 py-6">
+                  <div className="relative w-24 h-24 flex items-center justify-center">
+                    <div className="absolute inset-0 rounded-full bg-primary-container animate-ping" style={{ animationDuration: '2s' }} />
+                    <div className="w-16 h-16 rounded-3xl bg-primary flex items-center justify-center relative z-10 shadow-xl">
+                      <span className="material-symbols-outlined text-on-primary text-[32px] animate-spin" style={{ animationDuration: '3s' }}>
+                        progress_activity
+                      </span>
+                    </div>
+                  </div>
+                  <h3 className="text-headline-lg font-headline-lg text-on-surface">AI Agents Working</h3>
+                  
+                  <div className="bg-surface-container rounded-3xl p-6 border border-outline-variant w-full max-w-md mx-auto text-left shadow-inner">
+                    <div className="flex flex-col gap-4">
+                      {stages.map((stage, idx) => {
+                        const isActive = idx === stageIndex;
+                        const isDone = idx < stageIndex;
+                        if (Math.abs(idx - stageIndex) > 1) return null;
+                        return (
+                          <div
+                            key={stage}
+                            className={`flex items-center gap-4 transition-all duration-300 ${
+                              isActive ? 'opacity-100' : isDone ? 'opacity-50' : 'opacity-30'
+                            }`}
+                          >
+                            <span
+                              className={`material-symbols-outlined text-[24px] ${
+                                isActive ? 'text-primary animate-spin' : isDone ? 'text-primary' : 'text-outline'
+                              }`}
+                              style={isActive ? { animationDuration: '2s' } : {}}
+                            >
+                              {isDone ? 'check_circle' : isActive ? 'settings' : 'radio_button_unchecked'}
+                            </span>
+                            <span className={`text-label-md font-label-md uppercase tracking-wider ${isActive ? 'text-on-surface' : 'text-on-surface-variant'}`}>
+                              {stage}
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="py-8">
+                  <div className="w-20 h-20 mx-auto bg-primary-container rounded-full flex items-center justify-center mb-6">
+                    <span className="material-symbols-outlined text-primary text-[40px]">auto_awesome</span>
+                  </div>
+                  <h2 className="text-display-lg font-display-lg text-on-surface mb-4">Ready For AI Analysis</h2>
+                  <p className="text-body-lg font-body-lg text-on-surface-variant mb-10 max-w-lg mx-auto">
+                    The Multi-Agent system will combine your timeline, error logs, and git changes to generate a structured Root Cause Analysis.
+                  </p>
+
+                  {error && (
+                    <div className="mb-8 bg-error-container text-on-error-container rounded-3xl p-5 flex items-center justify-center gap-3 border border-outline max-w-md mx-auto">
+                      <span className="material-symbols-outlined text-[24px]">error</span>
+                      <span className="text-body-md font-body-md font-medium">{error}</span>
+                    </div>
+                  )}
+
+                  <div className="flex items-center justify-center gap-6">
+                    <button
+                      onClick={() => setCurrentStep(3)}
+                      className="text-label-md font-label-md text-outline hover:text-on-surface transition-colors px-6 py-3"
+                    >
+                      Go Back
+                    </button>
+                    <button
+                      onClick={handleStartInvestigation}
+                      className="bg-primary hover:bg-[#00513e] text-on-primary font-bold py-4 px-12 rounded-full transition-all text-body-md shadow-bento-hover"
+                    >
+                      Generate RCA Report
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
       </div>
-    </div>
+    </main>
   );
 }

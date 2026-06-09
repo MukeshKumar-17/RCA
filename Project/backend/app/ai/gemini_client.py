@@ -1,68 +1,103 @@
 """
-RootLens AI — LLM Client (Using OpenRouter)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Async wrapper around the standard OpenAI SDK configured for OpenRouter.
+RootLens AI — LLM Client (Google Gemini — Multi-Key Pool)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Round-robin key pool with automatic 429 fallback.
 
-Exposes a single reusable ``gemini`` instance (kept name for compatibility) 
-so every module can simply:
+Exposes a single reusable ``gemini`` instance so every module can simply:
 
     from app.ai.gemini_client import gemini
 
     answer = await gemini.generate("Summarise this log …")
 """
 
-from openai import AsyncOpenAI
+import asyncio
+import logging
+from typing import AsyncGenerator
+
+import google.generativeai as genai
 
 from app.core.config import settings
 
+logger = logging.getLogger("gemini_client")
 
-class GeminiClient:
-    """Thin async façade over the OpenAI SDK for OpenRouter.
 
-    Parameters are loaded once from :pydata:`app.core.config.settings`.
+class GeminiClientPool:
+    """Round-robin Gemini API key pool with automatic 429 fallback.
+
+    Collects all non-empty keys from GEMINI_API_KEY_1/2/3 and the
+    legacy GEMINI_API_KEY field. Consecutive calls rotate through
+    keys globally so parallel agent calls naturally spread load.
     """
 
     def __init__(self) -> None:
-        self.client = AsyncOpenAI(
-            base_url="https://openrouter.ai/api/v1",
-            api_key=settings.OPENROUTER_API_KEY,
-            max_retries=0,
-            default_headers={"HTTP-Referer": "https://yzb8iiq6.insforge.site", "X-Title": "RootLens AI"}
-        )
-        self.model_name = settings.LLM_MODEL
+        # Build key pool from numbered keys first, then legacy fallback
+        self.api_keys: list[str] = []
+        for key in [
+            settings.GEMINI_API_KEY_1,
+            settings.GEMINI_API_KEY_2,
+            settings.GEMINI_API_KEY_3,
+        ]:
+            if key and key.strip():
+                self.api_keys.append(key.strip())
+
+        # Include the legacy GEMINI_API_KEY if non-empty and not already present
+        legacy = (settings.GEMINI_API_KEY or "").strip()
+        if legacy and legacy not in self.api_keys:
+            self.api_keys.append(legacy)
+
+        if not self.api_keys:
+            raise RuntimeError(
+                "No Gemini API keys configured. Set at least GEMINI_API_KEY_1 in .env"
+            )
+
+        self.current_index = 0
+        self.model = settings.GEMINI_MODEL
+
+        logger.info(f"GeminiClientPool initialized with {len(self.api_keys)} key(s)")
+
+    def _get_next_key(self) -> str:
+        """Return the next key in round-robin order."""
+        key = self.api_keys[self.current_index]
+        self.current_index = (self.current_index + 1) % len(self.api_keys)
+        return key
 
     async def generate(self, prompt: str) -> str:
-        """Send *prompt* to OpenRouter and return the text response."""
-        models_to_try = [
-            self.model_name,
-            "google/gemini-2.0-pro-exp-02-05:free",
-            "qwen/qwen-2.5-coder-32b-instruct:free",
-            "meta-llama/llama-3.1-8b-instruct:free",
-            "mistralai/mistral-7b-instruct:free",
-            "huggingfaceh4/zephyr-7b-beta:free"
-        ]
-        
-        last_error = None
-        for model in models_to_try:
+        """Send *prompt* to Gemini with round-robin key rotation.
+
+        Tries each key exactly once. On 429/quota errors, rotates to the
+        next key. On any other error, raises immediately.
+        """
+        for attempt in range(len(self.api_keys)):
+            key = self._get_next_key()
             try:
-                response = await self.client.chat.completions.create(
-                    model=model,
-                    messages=[{"role": "user", "content": prompt}],
-                    temperature=0.3,
-                    max_tokens=8192,
+                genai.configure(api_key=key)
+                model = genai.GenerativeModel(self.model)
+                loop = asyncio.get_event_loop()
+                response = await loop.run_in_executor(
+                    None,
+                    lambda: model.generate_content(prompt),
                 )
-                if response.choices and response.choices[0].message.content:
-                    return response.choices[0].message.content
-            except Exception as exc:
-                import logging
-                logging.getLogger(__name__).warning("OpenRouter model %s failed: %s. Trying fallback.", model, exc)
-                last_error = exc
-                continue
+                return response.text.strip()
+            except Exception as e:
+                err_str = str(e)
+                if "429" in err_str or "quota" in err_str.lower():
+                    logger.warning(
+                        f"Key {attempt + 1}/{len(self.api_keys)} rate limited, "
+                        f"trying next key..."
+                    )
+                    continue
+                else:
+                    logger.error(f"Gemini call failed on key {attempt + 1}: {e}")
+                    raise
 
-        raise RuntimeError(f"All OpenRouter models failed. Last error: {last_error}")
+        logger.error("All Gemini API keys are rate limited (429)")
+        raise RuntimeError(
+            "All Gemini API keys exhausted. "
+            "All keys are rate limited. Try again in 1 minute."
+        )
 
-    async def generate_stream(self, messages: list[dict]) -> "AsyncGenerator[str, None]":
-        """Stream chat completions token by token.
+    async def generate_stream(self, messages: list[dict]) -> AsyncGenerator[str, None]:
+        """Stream chat completions token by token with key rotation.
 
         Parameters
         ----------
@@ -74,74 +109,98 @@ class GeminiClient:
         str
             Individual content tokens from the LLM response.
         """
-        models_to_try = [
-            self.model_name,
-            "google/gemini-2.0-pro-exp-02-05:free",
-            "qwen/qwen-2.5-coder-32b-instruct:free",
-            "meta-llama/llama-3.1-8b-instruct:free",
-        ]
+        # Convert OpenAI-style messages to a single Gemini prompt
+        prompt_parts = []
+        for msg in messages:
+            role = msg.get("role", "user")
+            content = msg.get("content", "")
+            if role == "system":
+                prompt_parts.append(f"SYSTEM INSTRUCTIONS:\n{content}")
+            elif role == "assistant":
+                prompt_parts.append(f"ASSISTANT:\n{content}")
+            else:
+                prompt_parts.append(f"USER:\n{content}")
+        combined_prompt = "\n\n".join(prompt_parts)
 
-        last_error = None
-        for model in models_to_try:
+        # Try each key for streaming
+        for attempt in range(len(self.api_keys)):
+            key = self._get_next_key()
             try:
-                stream = await self.client.chat.completions.create(
-                    model=model,
-                    messages=messages,
-                    temperature=0.3,
-                    max_tokens=4096,
-                    stream=True,
+                genai.configure(api_key=key)
+                model = genai.GenerativeModel(self.model)
+                loop = asyncio.get_event_loop()
+                response = await loop.run_in_executor(
+                    None,
+                    lambda: model.generate_content(
+                        combined_prompt,
+                        stream=True,
+                    ),
                 )
-                async for chunk in stream:
-                    if chunk.choices and chunk.choices[0].delta.content:
-                        yield chunk.choices[0].delta.content
+                for chunk in response:
+                    if chunk.text:
+                        yield chunk.text
                 return  # Success — exit after full stream
-            except Exception as exc:
-                import logging
-                logging.getLogger(__name__).warning(
-                    "OpenRouter stream model %s failed: %s. Trying fallback.", model, exc
-                )
-                last_error = exc
-                continue
+            except Exception as e:
+                err_str = str(e)
+                if "429" in err_str or "quota" in err_str.lower():
+                    logger.warning(
+                        f"Stream key {attempt + 1}/{len(self.api_keys)} rate limited, "
+                        f"trying next key..."
+                    )
+                    continue
+                else:
+                    logger.error(f"Gemini stream failed on key {attempt + 1}: {e}")
+                    yield f"\n\n[Error: Gemini streaming failed: {e}]"
+                    return
 
-        # All models failed — yield an error message
-        yield f"\n\n[Error: All LLM models failed. Last error: {last_error}]"
+        yield "\n\n[Error: All Gemini API keys are rate limited. Try again in 1 minute.]"
 
     async def generate_json(self, prompt: str) -> str:
-        """Convenience wrapper that appends a JSON-output instruction."""
+        """Convenience wrapper that appends a JSON-output instruction.
+
+        Uses the same round-robin key rotation as ``generate()``.
+        """
         json_prompt = (
             f"{prompt}\n\n"
-            "IMPORTANT: Respond ONLY with valid JSON. "
-            "Do not include markdown fences or any surrounding text."
+            "Respond only with valid JSON. No markdown, no explanation, no code fences."
         )
-        models_to_try = [
-            self.model_name,
-            "google/gemini-2.0-pro-exp-02-05:free",
-            "qwen/qwen-2.5-coder-32b-instruct:free",
-            "meta-llama/llama-3.1-8b-instruct:free",
-            "mistralai/mistral-7b-instruct:free",
-            "huggingfaceh4/zephyr-7b-beta:free"
-        ]
-        
-        last_error = None
-        for model in models_to_try:
-            try:
-                response = await self.client.chat.completions.create(
-                    model=model,
-                    messages=[{"role": "user", "content": json_prompt}],
-                    temperature=0.3,
-                    max_tokens=8192,
-                    response_format={"type": "json_object"}
-                )
-                if response.choices and response.choices[0].message.content:
-                    return response.choices[0].message.content
-            except Exception as exc:
-                import logging
-                logging.getLogger(__name__).warning("OpenRouter JSON model %s failed: %s. Trying fallback.", model, exc)
-                last_error = exc
-                continue
 
-        raise RuntimeError(f"All OpenRouter JSON models failed. Last error: {last_error}")
+        for attempt in range(len(self.api_keys)):
+            key = self._get_next_key()
+            try:
+                genai.configure(api_key=key)
+                model = genai.GenerativeModel(self.model)
+                loop = asyncio.get_event_loop()
+                response = await loop.run_in_executor(
+                    None,
+                    lambda: model.generate_content(
+                        json_prompt,
+                        generation_config=genai.types.GenerationConfig(
+                            temperature=0.3,
+                            max_output_tokens=8192,
+                            response_mime_type="application/json",
+                        ),
+                    ),
+                )
+                return response.text.strip()
+            except Exception as e:
+                err_str = str(e)
+                if "429" in err_str or "quota" in err_str.lower():
+                    logger.warning(
+                        f"JSON key {attempt + 1}/{len(self.api_keys)} rate limited, "
+                        f"trying next key..."
+                    )
+                    continue
+                else:
+                    logger.error(f"Gemini JSON call failed on key {attempt + 1}: {e}")
+                    raise
+
+        logger.error("All Gemini API keys are rate limited (429) for JSON call")
+        raise RuntimeError(
+            "All Gemini API keys exhausted. "
+            "All keys are rate limited. Try again in 1 minute."
+        )
 
 
 # ── Singleton instance ──────────────────────────────────────────────────
-gemini = GeminiClient()
+gemini = GeminiClientPool()

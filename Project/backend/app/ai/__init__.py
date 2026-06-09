@@ -5,4 +5,6 @@ ai package — public API
     result = await gemini.generate("…")
 """
 
-from app.ai.gemini_client import GeminiClient, gemini  # noqa: F401
+from app.ai.gemini_client import GeminiClientPool, gemini  # noqa: F401
+GeminiClient = GeminiClientPool  # backward compat alias
+
