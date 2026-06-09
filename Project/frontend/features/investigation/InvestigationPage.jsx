@@ -86,7 +86,7 @@ export default function InvestigationPage() {
         <p className="font-body-md text-body-md text-outline max-w-md text-center leading-relaxed">
           Start a new investigation via "New Scan" or select one from the Dashboard.
         </p>
-        <Link to="/" className="mt-6 bg-gradient-to-r from-sky-200 to-violet-200 text-on-surface font-label-bold text-[12px] py-2.5 px-6 rounded-lg hover:shadow-elevated transition-all">
+        <Link to="/" className="mt-6 bg-[#008B8B] text-white font-label-bold text-[12px] py-2.5 px-6 rounded-lg hover:shadow-elevated transition-all border-2 border-black">
           Go to Dashboard
         </Link>
       </div>
@@ -116,7 +116,7 @@ export default function InvestigationPage() {
         </div>
         <h2 className="font-headline-sm text-headline-sm text-on-surface mb-2">Investigation Not Found</h2>
         <p className="font-body-md text-body-md text-outline max-w-md text-center">{error}</p>
-        <Link to="/" className="mt-6 bg-gradient-to-r from-sky-200 to-violet-200 text-on-surface font-label-bold text-[12px] py-2.5 px-6 rounded-lg hover:shadow-elevated transition-all">
+        <Link to="/" className="mt-6 bg-[#008B8B] text-white font-label-bold text-[12px] py-2.5 px-6 rounded-lg hover:shadow-elevated transition-all border-2 border-black">
           Back to Dashboard
         </Link>
       </div>
@@ -150,7 +150,7 @@ export default function InvestigationPage() {
   ];
 
   return (
-    <div className="flex-1 flex overflow-hidden animate-fade-in">
+    <div className="h-full flex overflow-hidden animate-fade-in">
       {/* Left: Runbook */}
       <aside className="w-[280px] h-full flex flex-col overflow-y-auto p-5 bg-white border-r border-outline-variant/30 shrink-0">
         <div className="flex items-center justify-between mb-4 sticky top-0 bg-white z-10 pb-3 border-b border-outline-variant/20">

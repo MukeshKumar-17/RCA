@@ -43,7 +43,7 @@ export default function CopilotPage() {
   const hasMessages = messages.length > 0;
 
   return (
-    <div className="flex-1 flex overflow-hidden animate-fade-in">
+    <div className="h-full flex overflow-hidden animate-fade-in">
       {/* Chat Area */}
       <div className="flex-1 flex flex-col h-full bg-white relative">
         {/* Messages / Welcome */}
@@ -152,7 +152,7 @@ export default function CopilotPage() {
                 rows="1" style={{ minHeight: '48px' }}
               />
               <button onClick={handleSend} disabled={!input.trim() || isStreaming}
-                className="absolute bottom-2.5 right-2.5 w-9 h-9 rounded-lg bg-gradient-to-r from-sky-200 to-violet-200 text-on-surface flex items-center justify-center hover:shadow-card transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+                className="absolute bottom-2.5 right-2.5 w-9 h-9 rounded-lg bg-[#008B8B] text-white flex items-center justify-center hover:shadow-card transition-all disabled:opacity-30 disabled:cursor-not-allowed border-2 border-black"
               >
                 <span className="material-symbols-outlined text-[16px]" style={{ fontVariationSettings: "'FILL' 1" }}>send</span>
               </button>

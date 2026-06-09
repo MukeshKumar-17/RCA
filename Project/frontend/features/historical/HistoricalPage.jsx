@@ -49,6 +49,7 @@ export default function HistoricalPage() {
   });
 
   return (
+    <div className="h-full overflow-y-auto">
     <div className="p-6 lg:p-8 max-w-[1400px] w-full mx-auto animate-fade-in">
       {/* Header */}
       <div className="mb-6 flex flex-col md:flex-row md:items-end justify-between gap-4">
@@ -206,6 +207,7 @@ export default function HistoricalPage() {
           </div>
         </div>
       )}
+    </div>
     </div>
   );
 }

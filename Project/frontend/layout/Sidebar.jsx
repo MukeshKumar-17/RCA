@@ -25,6 +25,15 @@ export default function Sidebar({ onNewScan }) {
         <div className="h-[3px] bg-black w-full mb-8"></div>
       </div>
       <div className="flex flex-col flex-1 px-4 gap-2">
+        <div className="mb-6">
+          <button
+            onClick={onNewScan}
+            className="w-full bg-brand-yellow text-on-surface font-label-bold text-label-bold uppercase py-4 border-[3px] border-black hover:bg-[#FFE000] active:translate-y-1 transition-all flex items-center justify-center gap-2 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:shadow-[0px_0px_0px_0px_rgba(0,0,0,1)]"
+          >
+            <span className="material-symbols-outlined font-bold">add</span>
+            New Scan
+          </button>
+        </div>
         {NAV_ITEMS.map((item) => {
           const isActive = location.pathname === item.path || (item.path !== '/' && location.pathname.startsWith(item.path));
           const isSettings = item.path === '/settings';
@@ -45,15 +54,6 @@ export default function Sidebar({ onNewScan }) {
             </NavLink>
           );
         })}
-      </div>
-      <div className="px-4 pb-8">
-        <button
-          onClick={onNewScan}
-          className="w-full bg-brand-yellow text-on-surface font-label-bold text-label-bold uppercase py-4 border-[3px] border-black hover:bg-[#FFE000] active:translate-y-1 transition-all flex items-center justify-center gap-2 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:shadow-[0px_0px_0px_0px_rgba(0,0,0,1)]"
-        >
-          <span className="material-symbols-outlined font-bold">add</span>
-          New Scan
-        </button>
       </div>
     </nav>
   );

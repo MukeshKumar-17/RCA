@@ -101,7 +101,7 @@ export default function DashboardPage() {
 
   if (loading && incidents.length === 0) {
     return (
-      <div className="p-6 lg:p-8 flex-1 flex flex-col gap-6 xl:flex-row animate-fade-in">
+      <div className="p-6 lg:p-8 h-full flex flex-col gap-6 xl:flex-row animate-fade-in overflow-y-auto">
         <div className="flex-1 flex flex-col gap-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <SkeletonCard /><SkeletonCard /><SkeletonCard />
@@ -116,11 +116,11 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="p-6 lg:p-8 flex-1 flex flex-col gap-6 xl:flex-row animate-fade-in">
+    <div className="p-6 lg:p-8 h-full flex flex-col gap-6 xl:flex-row animate-fade-in overflow-y-auto">
       {/* Left Column */}
       <div className="flex-1 flex flex-col gap-6">
         {/* Status Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-5 stagger-in">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-5 animate-fade-in">
           {/* Total Investigations */}
           <div className="rounded-xl border border-outline-variant/30 p-6 bg-white shadow-card card-hover relative overflow-hidden group">
             <div className="absolute -right-6 -bottom-6 opacity-[0.06] transform group-hover:scale-110 transition-transform duration-700">

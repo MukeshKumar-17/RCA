@@ -44,13 +44,13 @@ export default function ReportPage() {
   // No incident selected
   if (!incidentId) {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center p-12 animate-fade-in">
+      <div className="h-full flex flex-col items-center justify-center p-12 animate-fade-in">
         <div className="w-16 h-16 rounded-2xl bg-lavender-50 flex items-center justify-center mb-5">
           <span className="material-symbols-outlined text-violet-200 text-[32px]" style={{ fontVariationSettings: "'FILL' 1" }}>description</span>
         </div>
         <h2 className="font-headline-sm text-headline-sm text-on-surface mb-2 tracking-tight">No Report Selected</h2>
         <p className="font-body-md text-body-md text-outline max-w-md text-center leading-relaxed">Select an incident from the Dashboard or Investigations view to see the full RCA report.</p>
-        <Link to="/" className="mt-6 bg-gradient-to-r from-sky-200 to-violet-200 text-on-surface font-label-bold text-[12px] py-2.5 px-6 rounded-lg hover:shadow-elevated transition-all">
+        <Link to="/" className="mt-6 bg-[#008B8B] text-white font-label-bold text-[12px] py-2.5 px-6 rounded-lg hover:shadow-elevated transition-all border-2 border-black">
           Go to Dashboard
         </Link>
       </div>
@@ -78,7 +78,7 @@ export default function ReportPage() {
   // Not complete yet
   if (report?.status !== 'COMPLETE') {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center p-12 animate-fade-in">
+      <div className="h-full flex flex-col items-center justify-center p-12 animate-fade-in">
         <div className="w-16 h-16 rounded-2xl bg-lavender-50 flex items-center justify-center mb-5 animate-pulse-soft">
           <span className="material-symbols-outlined text-violet-200 text-[32px] animate-spin" style={{ animationDuration: '3s' }}>progress_activity</span>
         </div>
@@ -86,7 +86,7 @@ export default function ReportPage() {
         <p className="font-body-md text-body-md text-outline max-w-md text-center mb-4">
           Status: {report?.status || 'Unknown'}. Evidence completeness: {report?.evidence_completeness || 0}%.
         </p>
-        <Link to={`/investigate/${incidentId}`} className="bg-gradient-to-r from-sky-200 to-violet-200 text-on-surface font-label-bold text-[12px] py-2.5 px-6 rounded-lg hover:shadow-elevated transition-all">
+        <Link to={`/investigate/${incidentId}`} className="bg-[#008B8B] text-white font-label-bold text-[12px] py-2.5 px-6 rounded-lg hover:shadow-elevated transition-all border-2 border-black">
           View Investigation
         </Link>
       </div>
@@ -106,6 +106,7 @@ export default function ReportPage() {
   const rcaTimeline = rca.timeline || [];
 
   return (
+    <div className="h-full overflow-y-auto">
     <div className="p-6 lg:p-8 max-w-5xl mx-auto animate-fade-in">
       {/* Report Header */}
       <div className="mb-8">
@@ -371,6 +372,7 @@ export default function ReportPage() {
           </Link>
         </div>
       </div>
+    </div>
     </div>
   );
 }
