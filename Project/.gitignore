@@ -67,3 +67,9 @@ Thumbs.db
 # Test Output
 .pytest_cache/
 coverage/
+
+.vite/
+sample-data/
+package-lock.json
+AGENTS.md
+insforge.toml

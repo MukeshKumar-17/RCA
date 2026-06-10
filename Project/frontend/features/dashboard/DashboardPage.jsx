@@ -223,8 +223,8 @@ export default function DashboardPage() {
                 <p className="text-body-md font-body-md text-outline">No activity yet</p>
               </div>
             ) : (
-              incidents.slice(0, 5).map((inc) => (
-                <ActivityItem key={inc.id} incident={inc} navigate={navigate} />
+              incidents.slice(0, 5).map((inc, index, arr) => (
+                <ActivityItem key={inc.id} incident={inc} navigate={navigate} isLast={index === arr.length - 1} />
               ))
             )}
           </div>
@@ -294,7 +294,7 @@ function IncidentCard({ incident, navigate }) {
   );
 }
 
-function ActivityItem({ incident, navigate }) {
+function ActivityItem({ incident, navigate, isLast }) {
   const isComplete = incident.status === 'COMPLETE';
   const title = incident.user_context || 'Untitled';
   const created = incident.created_at ? new Date(incident.created_at) : null;
@@ -309,7 +309,7 @@ function ActivityItem({ incident, navigate }) {
           {isComplete ? 'done_all' : 'psychology'}
         </span>
       </div>
-      <div className="absolute left-[15px] top-8 w-0.5 h-[calc(100%+8px)] bg-surface-variant"></div>
+      {!isLast && <div className="absolute left-[15px] top-8 w-0.5 h-[calc(100%+8px)] bg-surface-variant"></div>}
       <div className="bg-surface-container rounded-2xl p-4 border border-surface-variant group-hover:bg-surface-container-high transition-colors">
         <div className="flex justify-between items-center mb-2">
           <span className={`text-label-sm font-label-sm uppercase tracking-wider ${isComplete ? 'text-primary' : 'text-secondary'}`}>
