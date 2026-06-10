@@ -1,6 +1,6 @@
-# 🚀 RCA - AI Powered Root Cause Analysis Platform
+# RCA - AI Powered Root Cause Analysis Platform
 
-## 📌 Overview
+## Overview
 
 RCA (Root Cause Analysis) is an AI-powered incident investigation platform designed to help teams quickly identify, analyze, and resolve system failures.
 
@@ -8,44 +8,44 @@ The platform leverages Artificial Intelligence to process incident logs, generat
 
 ---
 
-## ✨ Features
+## Features
 
-### 🔍 Incident Analysis
+### Incident Analysis
 - Upload incident logs and reports
 - Automated log processing
 - AI-driven issue detection
 
-### 🧠 Root Cause Analysis
+### Root Cause Analysis
 - Detect probable root causes
 - Correlate events across multiple sources
 - AI-generated investigation insights
 
-### 📈 Timeline Generation
+### Timeline Generation
 - Automatic incident timeline creation
 - Event sequencing
 - Impact tracking
 
-### 🤖 AI Copilot
+### AI Copilot
 - Interactive incident assistant
 - Incident-related queries
 - AI-powered recommendations
 
-### 📄 Report Generation
+### Report Generation
 - Generate RCA reports
 - Export investigation summaries
 - PDF report support
 
-### 📂 File Upload Support
+### File Upload Support
 - Upload logs and incident files
 - Secure processing pipeline
 
-### 📧 Notifications
+### Notifications
 - Email report sharing
 - Incident communication support
 
 ---
 
-## 🏗️ System Architecture
+## System Architecture
 
 ```text
 ┌─────────────────────┐
@@ -65,7 +65,7 @@ Database        Analysis Engine
 
 ---
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 ### Frontend
 - React 19
@@ -123,7 +123,7 @@ Project/
 
 ---
 
-## ⚙️ Installation
+## Installation
 
 ### Clone Repository
 
@@ -196,7 +196,7 @@ http://localhost:8000
 
 ---
 
-## 🔐 Environment Variables
+## Environment Variables
 
 Create a `.env` file:
 
@@ -212,7 +212,7 @@ EMAIL_FROM=noreply@example.com
 
 ---
 
-## 🐳 Docker Deployment
+## Docker Deployment
 
 ```bash
 docker-compose up --build
@@ -220,7 +220,7 @@ docker-compose up --build
 
 ---
 
-## 📡 API Modules
+## API Modules
 
 ### Incident APIs
 - Create Incident
@@ -241,7 +241,7 @@ docker-compose up --build
 
 ---
 
-## 🎯 Use Cases
+## Use Cases
 
 - Production Incident Analysis
 - Application Failure Investigation
@@ -252,7 +252,7 @@ docker-compose up --build
 
 ---
 
-## 🔮 Future Enhancements
+## Future Enhancements
 
 - Real-time Monitoring
 - Predictive Incident Detection
@@ -263,18 +263,18 @@ docker-compose up --build
 
 ---
 
-## 👥 Team
+## Team
 
 Developed as an AI-powered incident investigation and Root Cause Analysis platform to improve operational reliability and reduce Mean Time To Resolution (MTTR).
 
 ---
 
-## 📄 License
+## License
 
 This project is licensed under the MIT License.
 
 ---
 
-## ⭐ Support
+## Support
 
 If you find this project useful, please consider giving it a star on GitHub.
