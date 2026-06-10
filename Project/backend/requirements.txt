@@ -25,3 +25,7 @@ aiosmtplib
 weasyprint
 sendgrid
 email-validator
+
+# ── Authentication ───────────────────────────────
+python-jose[cryptography]
+passlib[bcrypt]

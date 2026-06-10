@@ -19,6 +19,7 @@ from app.api.incidents import router as incidents_router
 from app.api.upload import router as upload_router
 from app.api.reports import router as reports_router
 from app.api.copilot import router as copilot_router
+from app.api.auth import router as auth_router
 
 
 # ── Lifespan (startup / shutdown) ──────────────────────────────────────
@@ -59,6 +60,7 @@ app.include_router(incidents_router, prefix="/api")
 app.include_router(upload_router, prefix="/api")
 app.include_router(reports_router, prefix="/api")
 app.include_router(copilot_router, prefix="/api")
+app.include_router(auth_router, prefix="/api")
 
 
 # ── Health-check ────────────────────────────────────────────────────────

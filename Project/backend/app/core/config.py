@@ -102,6 +102,20 @@ class Settings(BaseSettings):
         description="Verified sender email address for SendGrid",
     )
 
+    # ── JWT Authentication ─────────────────────────────────────────────
+    JWT_SECRET_KEY: str = Field(
+        default="change-this-secret",
+        description="Secret key for JWT token signing",
+    )
+    JWT_ALGORITHM: str = Field(
+        default="HS256",
+        description="JWT algorithm",
+    )
+    JWT_EXPIRE_MINUTES: int = Field(
+        default=60 * 24,
+        description="JWT token expiration time in minutes",
+    )
+
 @lru_cache
 def get_settings() -> Settings:
     """Return a cached Settings instance (parsed once per process)."""
