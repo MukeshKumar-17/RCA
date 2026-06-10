@@ -595,17 +595,5 @@ Full prompt log is in `docs/AI_PROMPTS.md`
 
 **Team Name: VOID SMASH**
 
-| Name | Role |
-|---|---|
-| MUKESH KUMAR K | Backend Development, AI Agents, MCP Integration |
-| VIJAY PRASATH R | Frontend Development, UI Design |
-| SUMAN M | Database Design, API Integration |
-| HEMA DHARSHANA S J | Documentation, Testing, Sample Data |
+**Team Members : MUKESH KUMAR K | HEMA DHARSHANA S J | VIJAY PRASATH R | SUMAN M**
 
-Institution: KIT — Kalaignar Karunanidhi Institute of Technology
-
-Resumes with 10th, 12th, and UG percentage for all team members are included in the `/resumes` folder of this repository in PDF format.
-
----
-
-*RootLens AI — Investigate incidents in minutes, not hours.*
