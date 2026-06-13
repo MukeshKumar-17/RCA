@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/png" href="/logo.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="RootLens AI — Investigate incidents in minutes, not hours. AI-powered Root Cause Analysis." />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+    <script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+              "surface-tint": "#006b54",
+              "on-error-container": "#93000a",
+              "surface-container-highest": "#dbe5df",
+              "outline-variant": "#b9cbc2",
+              "inverse-on-surface": "#e9f3ed",
+              "surface-container-low": "#ecf6f0",
+              "surface-bright": "#f2fcf5",
+              "on-tertiary": "#ffffff",
+              "surface-dim": "#d2dcd6",
+              "on-surface-variant": "#3a4a44",
+              "surface-container-lowest": "#ffffff",
+              "error": "#ba1a1a",
+              "inverse-primary": "#00e0b2",
+              "background": "#f2fcf5",
+              "on-secondary": "#ffffff",
+              "on-background": "#141d1a",
+              "outline": "#6a7b73",
+              "on-secondary-container": "#2a6e5a",
+              "tertiary": "#6e5e00",
+              "on-error": "#ffffff",
+              "on-primary-fixed-variant": "#00513e",
+              "on-tertiary-container": "#746300",
+              "secondary": "#256956",
+              "secondary-fixed-dim": "#91d4bc",
+              "on-surface": "#141d1a",
+              "on-primary-fixed": "#002117",
+              "on-primary-container": "#007259",
+              "primary-fixed": "#27ffcc",
+              "on-tertiary-fixed": "#211b00",
+              "on-secondary-fixed": "#002118",
+              "error-container": "#ffdad6",
+              "tertiary-fixed": "#ffe257",
+              "primary": "#006b54",
+              "on-secondary-fixed-variant": "#00513f",
+              "on-primary": "#ffffff",
+              "on-tertiary-fixed-variant": "#534600",
+              "tertiary-container": "#ffe14f",
+              "secondary-fixed": "#acf0d7",
+              "surface-container": "#e6f0ea",
+              "surface-variant": "#dbe5df",
+              "tertiary-fixed-dim": "#e2c635",
+              "surface-container-high": "#e0ebe4",
+              "inverse-surface": "#29322e",
+              "primary-container": "#0dffcb",
+              "surface": "#f2fcf5",
+              "primary-fixed-dim": "#00e0b2",
+              "secondary-container": "#a9eed4"
+            },
+            "borderRadius": {
+              "DEFAULT": "1rem",
+              "lg": "2rem",
+              "xl": "3rem",
+              "full": "9999px"
+            },
+            "spacing": {
+              "container-padding": "2rem",
+              "breakpoint-md": "768px",
+              "breakpoint-lg": "1200px",
+              "stack-gap": "0.75rem",
+              "tile-padding": "1.5rem",
+              "grid-gutter": "1.5rem"
+            },
+            "fontFamily": {
+              "body-md": ["Inter", "sans-serif"],
+              "body-lg": ["Inter", "sans-serif"],
+              "label-sm": ["Inter", "sans-serif"],
+              "display-lg": ["EB Garamond", "serif"],
+              "headline-md": ["EB Garamond", "serif"],
+              "headline-lg": ["EB Garamond", "serif"],
+              "headline-lg-mobile": ["EB Garamond", "serif"],
+              "label-md": ["Inter", "sans-serif"]
+            },
+            "fontSize": {
+              "body-md": ["17px", {"lineHeight": "1.6", "fontWeight": "400"}],
+              "body-lg": ["20px", {"lineHeight": "1.6", "fontWeight": "400"}],
+              "label-sm": ["13px", {"lineHeight": "1.2", "fontWeight": "700"}],
+              "display-lg": ["48px", {"lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+              "headline-md": ["20px", {"lineHeight": "1.4", "fontWeight": "600"}],
+              "headline-lg": ["32px", {"lineHeight": "1.2", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+              "headline-lg-mobile": ["24px", {"lineHeight": "1.2", "fontWeight": "600"}],
+              "label-md": ["15px", {"lineHeight": "1.4", "letterSpacing": "0.01em", "fontWeight": "600"}]
+            },
+            "boxShadow": {
+              "bento-hover": "0 10px 20px rgba(0,0,0,0.05)",
+            }
+          }
+        }
+      }
+    </script>
+    <style>
+        * {
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        .chat-scroll::-webkit-scrollbar { width: 6px; }
+        .chat-scroll::-webkit-scrollbar-track { background: transparent; }
+        .chat-scroll::-webkit-scrollbar-thumb { background-color: #b9cbc2; border-radius: 100px; }
+        .chat-scroll::-webkit-scrollbar-thumb:hover { background-color: #6a7b73; }
+        
+        *::-webkit-scrollbar { width: 6px; height: 6px; }
+        *::-webkit-scrollbar-track { background: transparent; }
+        *::-webkit-scrollbar-thumb { background-color: #b9cbc2; border-radius: 100px; }
+        *::-webkit-scrollbar-thumb:hover { background-color: #6a7b73; }
+
+        .progress-stripe {
+            background-image: linear-gradient(
+                45deg,
+                rgba(255,255,255,.15) 25%,
+                transparent 25%,
+                transparent 50%,
+                rgba(255,255,255,.15) 50%,
+                rgba(255,255,255,.15) 75%,
+                transparent 75%,
+                transparent
+            );
+            background-size: 1rem 1rem;
+            animation: progressStripe 1s linear infinite;
+        }
+        
+        .bento-tile {
+            background-color: #ffffff; /* surface-container-lowest */
+            border-radius: 3rem;
+            border: 1px solid #b9cbc2; /* outline-variant */
+            padding: 24px;
+            transition: box-shadow 0.2s ease-in-out;
+        }
+        .bento-tile:hover {
+            box-shadow: 0 10px 20px rgba(0,0,0,0.05); /* Soft ambient shadow */
+        }
+    </style>
+    <title>RootLens AI — Incident Investigation Agent</title>
+  </head>
+  <body class="flex h-screen overflow-hidden text-on-surface bg-background font-body-md selection:bg-primary-container selection:text-on-surface">
+    <div id="root" class="w-full"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>

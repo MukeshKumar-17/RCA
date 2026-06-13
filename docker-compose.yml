@@ -1,0 +1,30 @@
+# ──────────────────────────────────────────────────────────
+#  RootLens AI — Docker Compose
+#  Services: PostgreSQL Database
+# ──────────────────────────────────────────────────────────
+
+version: "3.9"
+
+services:
+  # ── PostgreSQL Database ──────────────────────────────────
+  db:
+    image: postgres:16-alpine
+    container_name: rootlens-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: rootlens
+      POSTGRES_PASSWORD: rootlens_secret
+      POSTGRES_DB: rootlens
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U rootlens"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  pgdata:
+    driver: local
