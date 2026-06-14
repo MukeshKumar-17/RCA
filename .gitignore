@@ -89,6 +89,7 @@ sample-data/
 fix_*.sql
 schema_update.sql
 
-# ── Misc ───────────────────────────────────────────────────
+# -- Misc -------------------------------------------------------
 *.local
 AGENTS.md
+migrate.py

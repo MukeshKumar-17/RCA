@@ -1,64 +1,63 @@
 <div align="center">
 
-# 🔍 RootLens AI
+# RootLens AI
 
 ### Intelligent Root Cause Analysis Platform
 
-[![Live Demo](https://img.shields.io/badge/🚀_Live_Demo-rootlens.insforge.site-0ea5e9?style=for-the-badge)](https://rootlens.insforge.site)
-[![Backend](https://img.shields.io/badge/⚡_Backend-Fly.io-8b5cf6?style=for-the-badge)](https://rootlens-backend-73624a2a-d0c4-45ce-8f5c-628c7c020042.fly.dev/health)
+[![Live Demo](https://img.shields.io/badge/Live_Demo-yzb8iiq6.insforge.site-0ea5e9?style=for-the-badge)](https://yzb8iiq6.insforge.site)
+[![Backend](https://img.shields.io/badge/Backend-Fly.io-8b5cf6?style=for-the-badge)](https://rootlens-backend-73624a2a-d0c4-45ce-8f5c-628c7c020042.fly.dev/health)
 [![Built with](https://img.shields.io/badge/Built_with-InsForge-f97316?style=for-the-badge)](https://insforge.com)
 
 **RootLens AI** is an AI-powered incident investigation platform that automates **Root Cause Analysis (RCA)** for production incidents. Upload your logs, timelines, and code diffs — and let a multi-agent AI pipeline analyze, correlate, and synthesize a comprehensive RCA report in seconds.
 
-[Live App](https://rootlens.insforge.site) · [Architecture](#-system-architecture) · [User Flow](#-user-flow) · [API Reference](#-api-reference)
+[Live App](https://yzb8iiq6.insforge.site) · [Architecture](#system-architecture) · [User Flow](#user-flow) · [API Reference](#api-reference)
 
 </div>
 
 ---
 
-## 📑 Table of Contents
+## Table of Contents
 
-- [Features](#-features)
-- [Live Demo](#-live-demo)
-- [System Architecture](#-system-architecture)
-- [Multi-Agent Pipeline](#-multi-agent-pipeline)
-- [User Flow](#-user-flow)
-- [MCP (Model Context Protocol)](#-mcp-model-context-protocol)
-- [Tech Stack](#-tech-stack)
-- [Project Structure](#-project-structure)
-- [Database Schema](#-database-schema)
-- [API Reference](#-api-reference)
-- [Getting Started](#-getting-started)
-- [Deployment](#-deployment)
-- [Environment Variables](#-environment-variables)
-- [Contributing](#-contributing)
-- [License](#-license)
+- [Features](#features)
+- [Live Demo](#live-demo)
+- [System Architecture](#system-architecture)
+- [Multi-Agent Pipeline](#multi-agent-pipeline)
+- [User Flow](#user-flow)
+- [MCP (Model Context Protocol)](#mcp-model-context-protocol)
+- [Tech Stack](#tech-stack)
+- [Project Structure](#project-structure)
+- [Database Schema](#database-schema)
+- [API Reference](#api-reference)
+- [Getting Started](#getting-started)
+- [Deployment](#deployment)
+- [Environment Variables](#environment-variables)
+- [Contributing](#contributing)
+- [License](#license)
 
 ---
 
-## ✨ Features
+## Features
 
 | Feature | Description |
 |---------|-------------|
-| 🤖 **Multi-Agent RCA Pipeline** | Four specialized AI agents (Log, Timeline, Git, RCA) analyze incidents in parallel using Google Gemini 2.5 Flash |
-| 🧠 **AI Copilot Chat** | Context-aware streaming chat assistant that answers follow-up questions about any investigation with SSE streaming |
-| 📊 **Real-time Dashboard** | Live incident tracking with status indicators, confidence scores, and evidence completeness metrics |
-| 📁 **File Upload & Attachment** | Upload logs, timelines, and diffs via InsForge Storage with automatic parsing |
-| 📄 **PDF Export** | Generate downloadable PDF reports with full RCA details, evidence chains, and action items |
-| 📧 **Email Reports** | Send PDF reports directly to team members via SendGrid integration |
-| 🔍 **Historical Search** | MCP-powered similarity search across past incidents to enrich new investigations |
-| 🔐 **Google OAuth** | Secure authentication via InsForge Auth with row-level security (RLS) on all tables |
-| 🎨 **Material Design 3** | Premium dark-mode UI with glassmorphism, micro-animations, and responsive layout |
-| ⚡ **Multi-Key Pool** | Round-robin Gemini API key rotation with automatic 429 fallback |
+| **Multi-Agent RCA Pipeline** | Four specialized AI agents (Log, Timeline, Git, RCA) analyze incidents in parallel using Google Gemini 2.5 Flash |
+| **AI Copilot Chat** | Context-aware streaming chat assistant that answers follow-up questions about any investigation with SSE streaming |
+| **Real-time Dashboard** | Live incident tracking with status indicators, confidence scores, and evidence completeness metrics |
+| **File Upload & Attachment** | Upload logs, timelines, and diffs via InsForge Storage with automatic parsing |
+| **PDF Export** | Generate downloadable PDF reports with full RCA details, evidence chains, and action items |
+| **Email Reports** | Send PDF reports directly to team members via SendGrid integration |
+| **Historical Search** | MCP-powered similarity search across past incidents to enrich new investigations |
+| **Google OAuth** | Secure authentication via InsForge Auth with row-level security (RLS) on all tables |
+| **Material Design 3** | Premium dark-mode UI with glassmorphism, micro-animations, and responsive layout |
+| **Multi-Key Pool** | Round-robin Gemini API key rotation with automatic 429 fallback |
 
 ---
 
-## 🚀 Live Demo
+## Live Demo
 
 | Environment | URL |
 |------------|-----|
-| **Production (Custom Domain)** | [https://rootlens.insforge.site](https://rootlens.insforge.site) |
-| **Production (Default)** | [https://yzb8iiq6.insforge.site](https://yzb8iiq6.insforge.site) |
+| **Production** | [https://yzb8iiq6.insforge.site](https://yzb8iiq6.insforge.site) |
 | **Backend API** | [https://rootlens-backend-73624a2a-d0c4-45ce-8f5c-628c7c020042.fly.dev](https://rootlens-backend-73624a2a-d0c4-45ce-8f5c-628c7c020042.fly.dev/health) |
 
 ### Quick Test
@@ -73,55 +72,55 @@ curl https://rootlens-backend-73624a2a-d0c4-45ce-8f5c-628c7c020042.fly.dev/api/t
 
 ---
 
-## 🏗 System Architecture
+## System Architecture
 
 ```mermaid
 graph TB
-    subgraph "Frontend — React + Vite"
-        UI["🖥️ React SPA<br/>(Material Design 3)"]
-        SDK["📦 InsForge SDK<br/>(@insforge/sdk)"]
-        Router["🔀 React Router v7"]
+    subgraph "Frontend -- React + Vite"
+        UI["React SPA<br/>(Material Design 3)"]
+        SDK["InsForge SDK<br/>(@insforge/sdk)"]
+        Router["React Router v7"]
     end
 
     subgraph "InsForge Platform (BaaS)"
-        Auth["🔐 Authentication<br/>(Google OAuth + JWT)"]
-        DB["🗄️ PostgreSQL<br/>(PostgREST + RLS)"]
-        Storage["📁 Object Storage<br/>(File uploads)"]
-        CDN["🌐 Static Hosting<br/>(CDN + Custom Domain)"]
+        Auth["Authentication<br/>(Google OAuth + JWT)"]
+        DB["PostgreSQL<br/>(PostgREST + RLS)"]
+        Storage["Object Storage<br/>(File uploads)"]
+        CDN["Static Hosting<br/>(CDN + Custom Domain)"]
     end
 
-    subgraph "Backend — FastAPI on Fly.io"
-        API["⚡ FastAPI Server<br/>(Uvicorn + Gunicorn)"]
-        CORS["🛡️ CORS Middleware"]
-        AuthDep["🔑 JWT Auth Dependency"]
+    subgraph "Backend -- FastAPI on Fly.io"
+        API["FastAPI Server<br/>(Uvicorn + Gunicorn)"]
+        CORS["CORS Middleware"]
+        AuthDep["JWT Auth Dependency"]
 
         subgraph "AI Agent Pipeline"
-            Orchestrator["🎯 Orchestrator"]
-            LogAgent["📋 Log Agent"]
-            TimelineAgent["⏱️ Timeline Agent"]
-            GitAgent["🔀 Git Agent"]
-            RCAAgent["🧠 RCA Agent"]
+            Orchestrator["Orchestrator"]
+            LogAgent["Log Agent"]
+            TimelineAgent["Timeline Agent"]
+            GitAgent["Git Agent"]
+            RCAAgent["RCA Agent"]
         end
 
         subgraph "MCP Layer"
-            MCPTools["🔧 MCP Tools"]
-            InforgeClient["📡 InForge Client<br/>(SQLAlchemy Async)"]
-            LocalStore["💾 In-Memory Store"]
+            MCPTools["MCP Tools"]
+            InforgeClient["InForge Client<br/>(SQLAlchemy Async)"]
+            LocalStore["In-Memory Store"]
         end
 
         subgraph "Services"
-            Copilot["💬 Copilot Service<br/>(SSE Streaming)"]
-            PDFService["📄 PDF Generator<br/>(WeasyPrint)"]
-            EmailService["📧 Email Service<br/>(SendGrid)"]
-            UploadService["📁 Upload Service"]
+            Copilot["Copilot Service<br/>(SSE Streaming)"]
+            PDFService["PDF Generator<br/>(WeasyPrint)"]
+            EmailService["Email Service<br/>(SendGrid)"]
+            UploadService["Upload Service"]
         end
 
-        GeminiPool["🔑 Gemini Key Pool<br/>(Round-robin + 429 fallback)"]
+        GeminiPool["Gemini Key Pool<br/>(Round-robin + 429 fallback)"]
     end
 
     subgraph "External Services"
-        Gemini["🤖 Google Gemini 2.5 Flash"]
-        SendGrid["📧 SendGrid API"]
+        Gemini["Google Gemini 2.5 Flash"]
+        SendGridExt["SendGrid API"]
     end
 
     UI --> SDK
@@ -157,7 +156,7 @@ graph TB
     API --> Copilot
     API --> PDFService
     API --> EmailService
-    EmailService --> SendGrid
+    EmailService --> SendGridExt
     API --> UploadService
     UploadService --> Storage
 
@@ -169,7 +168,7 @@ graph TB
 
 ---
 
-## 🤖 Multi-Agent Pipeline
+## Multi-Agent Pipeline
 
 The RCA pipeline uses a **multi-agent architecture** where specialized AI agents analyze different evidence sources in parallel, followed by an orchestrator that routes findings to the final RCA synthesis.
 
@@ -192,7 +191,7 @@ sequenceDiagram
     Frontend->>API: POST /api/incidents
     API->>Orch: orchestrator.run()
 
-    Note over Orch: Step 1 — Parallel Agent Analysis
+    Note over Orch: Step 1 -- Parallel Agent Analysis
 
     par Log Analysis
         Orch->>LA: log_agent.run(raw_logs)
@@ -211,28 +210,28 @@ sequenceDiagram
         GA-->>Orch: git_output
     end
 
-    Note over Orch: Step 2 — Historical Search
+    Note over Orch: Step 2 -- Historical Search
 
     Orch->>MCP: search_historical_incidents()
     MCP->>DB: SELECT similar incidents
     DB-->>MCP: Past incident matches
     MCP-->>Orch: mcp_matches[]
 
-    Note over Orch: Step 3 — Routing Check
+    Note over Orch: Step 3 -- Routing Check
 
     Orch->>RC: _routing_check()
     RC->>Gemini: Is evidence sufficient?
     Gemini-->>RC: evidence_completeness + decision
     RC-->>Orch: PROCEED_TO_RCA / REQUEST_CLARIFICATION
 
-    Note over Orch: Step 4 — RCA Synthesis
+    Note over Orch: Step 4 -- RCA Synthesis
 
     Orch->>RCA: rca_agent.run(all_findings)
     RCA->>Gemini: Synthesize root cause
     Gemini-->>RCA: Full RCA document
     RCA-->>Orch: rca_output
 
-    Note over Orch: Step 5 — Persist & Return
+    Note over Orch: Step 5 -- Persist and Return
 
     Orch-->>API: Complete result package
     API->>MCP: save_incident_to_mcp()
@@ -253,44 +252,44 @@ sequenceDiagram
 
 ---
 
-## 🔄 User Flow
+## User Flow
 
 ```mermaid
 flowchart TD
-    A["🌐 Visit rootlens.insforge.site"] --> B{"Authenticated?"}
-    B -->|No| C["🔐 Google OAuth Login<br/>(via InsForge Auth)"]
-    C --> D["✅ Authenticated"]
+    A["Visit yzb8iiq6.insforge.site"] --> B{"Authenticated?"}
+    B -->|No| C["Google OAuth Login<br/>(via InsForge Auth)"]
+    C --> D["Authenticated"]
     B -->|Yes| D
 
-    D --> E["📊 Dashboard<br/>View all incidents"]
+    D --> E["Dashboard<br/>View all incidents"]
 
-    E --> F["➕ New Scan"]
-    E --> G["📋 View Existing Report"]
-    E --> H["📜 Historical Incidents"]
-    E --> I["💬 AI Copilot Chat"]
+    E --> F["New Scan"]
+    E --> G["View Existing Report"]
+    E --> H["Historical Incidents"]
+    E --> I["AI Copilot Chat"]
 
-    F --> J["📁 Upload Evidence<br/>• Paste logs<br/>• Add timeline<br/>• Upload git diff<br/>• Attach files"]
+    F --> J["Upload Evidence<br/>Paste logs<br/>Add timeline<br/>Upload git diff<br/>Attach files"]
 
-    J --> K["🚀 Generate Analysis"]
+    J --> K["Generate Analysis"]
 
-    K --> L["⏳ Pipeline Running<br/>• Analyzing Logs...<br/>• Parsing Timeline...<br/>• Reviewing Changes...<br/>• Searching Historical...<br/>• Synthesizing RCA..."]
+    K --> L["Pipeline Running<br/>Analyzing Logs...<br/>Parsing Timeline...<br/>Reviewing Changes...<br/>Searching Historical...<br/>Synthesizing RCA..."]
 
     L --> M{"Evidence<br/>Sufficient?"}
 
-    M -->|Yes| N["📊 Investigation Page<br/>• Root Cause<br/>• Evidence Chain<br/>• Contributing Factors<br/>• Action Items<br/>• Prevention Plan"]
+    M -->|Yes| N["Investigation Page<br/>Root Cause<br/>Evidence Chain<br/>Contributing Factors<br/>Action Items<br/>Prevention Plan"]
 
-    M -->|No| O["⚠️ Needs Clarification<br/>Additional evidence requested"]
+    M -->|No| O["Needs Clarification<br/>Additional evidence requested"]
     O --> J
 
-    N --> P["📄 Export PDF"]
-    N --> Q["📧 Email Report"]
-    N --> R["💬 Ask Copilot"]
-    N --> S["🔍 View Similar Incidents"]
+    N --> P["Export PDF"]
+    N --> Q["Email Report"]
+    N --> R["Ask Copilot"]
+    N --> S["View Similar Incidents"]
 
-    R --> T["🤖 AI Copilot<br/>SSE Streaming Chat<br/>Context-aware answers"]
+    R --> T["AI Copilot<br/>SSE Streaming Chat<br/>Context-aware answers"]
 
     G --> N
-    H --> U["📜 Historical List<br/>Past incident database"]
+    H --> U["Historical List<br/>Past incident database"]
 
     style A fill:#0ea5e9,color:#fff
     style K fill:#8b5cf6,color:#fff
@@ -301,7 +300,7 @@ flowchart TD
 
 ---
 
-## 🔧 MCP (Model Context Protocol)
+## MCP (Model Context Protocol)
 
 RootLens AI implements a **custom MCP layer** that bridges the AI agent pipeline with persistent storage and historical intelligence. The MCP tools follow the Model Context Protocol pattern, providing structured tool interfaces that the orchestrator invokes during analysis.
 
@@ -310,15 +309,15 @@ RootLens AI implements a **custom MCP layer** that bridges the AI agent pipeline
 ```mermaid
 graph LR
     subgraph "MCP Tool Layer"
-        T1["🔍 search_historical_incidents"]
-        T2["💾 save_incident_to_mcp"]
-        T3["📖 get_incident_from_mcp"]
-        T4["📋 list_incidents_from_mcp"]
+        T1["search_historical_incidents"]
+        T2["save_incident_to_mcp"]
+        T3["get_incident_from_mcp"]
+        T4["list_incidents_from_mcp"]
     end
 
     subgraph "Storage Backends"
-        PG["🐘 PostgreSQL<br/>(SQLAlchemy Async)"]
-        MEM["💨 In-Memory Store<br/>(Fast cache)"]
+        PG["PostgreSQL<br/>(SQLAlchemy Async)"]
+        MEM["In-Memory Store<br/>(Fast cache)"]
     end
 
     subgraph "Database Tables"
@@ -386,13 +385,13 @@ flowchart LR
 | **InsForge Auth** | Google OAuth authentication, JWT token issuance and validation |
 | **InsForge Database** | PostgreSQL with PostgREST API, Row-Level Security (RLS) policies |
 | **InsForge Storage** | File uploads for incident artifacts (logs, screenshots, configs) |
-| **InsForge Hosting** | Static site hosting with CDN, custom domain (`rootlens.insforge.site`) |
+| **InsForge Hosting** | Static site hosting with CDN, custom domain support |
 | **InsForge Compute** | Docker container deployment on Fly.io for the FastAPI backend |
 | **InsForge CLI** | Deployment, database queries, compute management, log streaming |
 
 ---
 
-## 🛠 Tech Stack
+## Tech Stack
 
 ### Frontend
 
@@ -421,14 +420,14 @@ flowchart LR
 
 | Technology | Purpose |
 |-----------|---------|
-| **InsForge** | BaaS — Auth, Database, Storage, Hosting, Compute |
+| **InsForge** | BaaS -- Auth, Database, Storage, Hosting, Compute |
 | **Fly.io** | Backend container hosting (via InsForge Compute) |
 | **PostgreSQL** | Primary database with RLS and async connections |
 | **Docker** | Container packaging for backend deployment |
 
 ---
 
-## 📂 Project Structure
+## Project Structure
 
 ```
 rootlens-ai/
@@ -507,7 +506,7 @@ rootlens-ai/
 
 ---
 
-## 🗄 Database Schema
+## Database Schema
 
 ```mermaid
 erDiagram
@@ -576,7 +575,7 @@ CREATE POLICY "Users can insert their own incidents"
 
 ---
 
-## 📡 API Reference
+## API Reference
 
 ### Incidents
 
@@ -622,20 +621,20 @@ CREATE POLICY "Users can insert their own incidents"
 
 ---
 
-## 🚀 Getting Started
+## Getting Started
 
 ### Prerequisites
 
-- **Node.js** ≥ 18
-- **Python** ≥ 3.12
-- **PostgreSQL** ≥ 15 (or InsForge database)
+- **Node.js** >= 18
+- **Python** >= 3.12
+- **PostgreSQL** >= 15 (or InsForge database)
 - **Google Gemini API Key** ([Get one here](https://aistudio.google.com/apikey))
 
 ### 1. Clone the repository
 
 ```bash
-git clone https://github.com/your-username/rootlens-ai.git
-cd rootlens-ai
+git clone https://github.com/MrFrog-v1/sample-root.git
+cd sample-root
 ```
 
 ### 2. Set up the frontend
@@ -678,10 +677,10 @@ EMAIL_FROM=your-verified-sender@email.com
 ### 4. Run locally
 
 ```bash
-# Terminal 1 — Frontend
+# Terminal 1 -- Frontend
 npm run dev
 
-# Terminal 2 — Backend
+# Terminal 2 -- Backend
 cd backend
 uvicorn app.main:app --reload --port 8000
 ```
@@ -690,9 +689,9 @@ Open [http://localhost:5173](http://localhost:5173) in your browser.
 
 ---
 
-## 🌐 Deployment
+## Deployment
 
-### Frontend — InsForge Hosting
+### Frontend -- InsForge Hosting
 
 ```bash
 npx @insforge/cli deployments deploy ./ --env '{
@@ -702,7 +701,7 @@ npx @insforge/cli deployments deploy ./ --env '{
 }'
 ```
 
-### Backend — InsForge Compute (Fly.io)
+### Backend -- InsForge Compute (Fly.io)
 
 ```bash
 npx @insforge/cli compute deploy ./backend --name rootlens-backend --port 8000
@@ -719,34 +718,34 @@ npx @insforge/cli compute update <service-id> \
 
 ---
 
-## 🔐 Environment Variables
+## Environment Variables
 
 ### Frontend
 
 | Variable | Required | Description |
 |----------|----------|-------------|
-| `VITE_INSFORGE_URL` | ✅ | InsForge backend URL |
-| `VITE_INSFORGE_ANON_KEY` | ✅ | InsForge anonymous key |
-| `VITE_API_URL` | ✅ | FastAPI backend URL (e.g., `https://your-backend.fly.dev/api`) |
+| `VITE_INSFORGE_URL` | Yes | InsForge backend URL |
+| `VITE_INSFORGE_ANON_KEY` | Yes | InsForge anonymous key |
+| `VITE_API_URL` | Yes | FastAPI backend URL (e.g., `https://your-backend.fly.dev/api`) |
 
 ### Backend
 
 | Variable | Required | Description |
 |----------|----------|-------------|
-| `DATABASE_URL` | ✅ | PostgreSQL connection string |
-| `GEMINI_API_KEY` | ✅ | Google Gemini API key (legacy/fallback) |
-| `GEMINI_API_KEY_1` | ⬡ | Gemini key #1 for round-robin pool |
-| `GEMINI_API_KEY_2` | ⬡ | Gemini key #2 for round-robin pool |
-| `GEMINI_API_KEY_3` | ⬡ | Gemini key #3 for round-robin pool |
-| `SECRET_KEY` | ✅ | Secret key for signing tokens |
-| `UPLOAD_DIR` | ❌ | Upload directory (default: `./storage`) |
-| `SENDGRID_API_KEY` | ❌ | SendGrid API key for email reports |
-| `EMAIL_FROM` | ❌ | Verified sender email for SendGrid |
-| `GEMINI_MODEL` | ❌ | Gemini model (default: `gemini-2.5-flash`) |
+| `DATABASE_URL` | Yes | PostgreSQL connection string |
+| `GEMINI_API_KEY` | Yes | Google Gemini API key (legacy/fallback) |
+| `GEMINI_API_KEY_1` | Optional | Gemini key 1 for round-robin pool |
+| `GEMINI_API_KEY_2` | Optional | Gemini key 2 for round-robin pool |
+| `GEMINI_API_KEY_3` | Optional | Gemini key 3 for round-robin pool |
+| `SECRET_KEY` | Yes | Secret key for signing tokens |
+| `UPLOAD_DIR` | No | Upload directory (default: `./storage`) |
+| `SENDGRID_API_KEY` | No | SendGrid API key for email reports |
+| `EMAIL_FROM` | No | Verified sender email for SendGrid |
+| `GEMINI_MODEL` | No | Gemini model (default: `gemini-2.5-flash`) |
 
 ---
 
-## 🤝 Contributing
+## Contributing
 
 1. Fork the repository
 2. Create a feature branch (`git checkout -b feature/amazing-feature`)
@@ -756,16 +755,16 @@ npx @insforge/cli compute update <service-id> \
 
 ---
 
-## 📄 License
+## License
 
-This project is licensed under the MIT License — see the [LICENSE](LICENSE) file for details.
+This project is licensed under the MIT License -- see the [LICENSE](LICENSE) file for details.
 
 ---
 
 <div align="center">
 
-**Built with ❤️ using [InsForge](https://insforge.com) + [Google Gemini](https://ai.google.dev)**
+**Built with InsForge and Google Gemini**
 
-[⬆ Back to Top](#-rootlens-ai)
+[Back to Top](#rootlens-ai)
 
 </div>
