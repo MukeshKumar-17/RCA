@@ -1,4 +1,4 @@
-<![CDATA[<div align="center">
+<div align="center">
 
 # 🔍 RootLens AI
 
@@ -769,4 +769,3 @@ This project is licensed under the MIT License — see the [LICENSE](LICENSE) fi
 [⬆ Back to Top](#-rootlens-ai)
 
 </div>
-]]>
