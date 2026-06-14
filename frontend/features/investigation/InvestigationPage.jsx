@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { getReport, getSimilarIncidents, pollReport } from '../../data/api';
 import { useToast } from '../../components/shared/ToastContext';
+import { insforge } from '../../utils/insforge';
 
 /**
  * InvestigationPage — Investigation workspace showing real pipeline data.
@@ -11,6 +12,8 @@ export default function InvestigationPage() {
   const navigate = useNavigate();
   const [incident, setIncident] = useState(null);
   const [similar, setSimilar] = useState([]);
+  const [attachments, setAttachments] = useState([]);
+  const [isUploading, setIsUploading] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [polling, setPolling] = useState(false);
@@ -60,6 +63,20 @@ export default function InvestigationPage() {
           if (!cancelled) setSimilar(sim.matches || []);
         } catch (err) {
           // OK if no similar found
+        }
+
+        // Load attachments
+        try {
+          const { data: files } = await insforge.database
+            .from('incident_files')
+            .select('*')
+            .eq('incident_id', incidentId)
+            .order('uploaded_at', { ascending: false });
+          if (!cancelled && files) {
+            setAttachments(files);
+          }
+        } catch (err) {
+          console.error('Failed to load attachments', err);
         }
       } catch (err) {
         if (!cancelled) {
@@ -116,6 +133,74 @@ export default function InvestigationPage() {
       </div>
     );
   }
+
+  const handleFileUpload = async (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    setIsUploading(true);
+    try {
+      // 1. Upload to InsForge Storage
+      const { data: uploadData, error: uploadError } = await insforge.storage
+        .from('incident-files')
+        .uploadAuto(file);
+
+      if (uploadError) throw uploadError;
+
+      // 2. Link file to incident in Database
+      const { data: dbData, error: dbError } = await insforge.database
+        .from('incident_files')
+        .insert([{
+          incident_id: incidentId,
+          file_name: file.name,
+          file_url: uploadData.url,
+          file_key: uploadData.key,
+        }]);
+
+      if (dbError) throw dbError;
+
+      toast.success('File attached successfully');
+      
+      // Refresh attachments
+      const { data: newFiles } = await insforge.database
+        .from('incident_files')
+        .select('*')
+        .eq('incident_id', incidentId)
+        .order('uploaded_at', { ascending: false });
+      if (newFiles) setAttachments(newFiles);
+      
+    } catch (err) {
+      toast.error(`Upload failed: ${err.message}`);
+    } finally {
+      setIsUploading(false);
+      // Reset input
+      event.target.value = '';
+    }
+  };
+
+  const handleDeleteAttachment = async (fileKey, fileId) => {
+    try {
+      // 1. Delete from Storage
+      const { error: storageError } = await insforge.storage
+        .from('incident-files')
+        .remove(fileKey);
+      
+      if (storageError) throw storageError;
+
+      // 2. Delete from Database
+      const { error: dbError } = await insforge.database
+        .from('incident_files')
+        .delete()
+        .eq('id', fileId);
+        
+      if (dbError) throw dbError;
+
+      setAttachments(prev => prev.filter(f => f.id !== fileId));
+      toast.success('File removed');
+    } catch (err) {
+      toast.error(`Delete failed: ${err.message}`);
+    }
+  };
 
   // Derive data from the real incident
   const agentOutputs = incident?.agent_outputs || {};
@@ -322,6 +407,36 @@ export default function InvestigationPage() {
             </div>
           </div>
         )}
+
+        {/* Attachments */}
+        <div>
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="font-label-md text-label-md uppercase tracking-wider text-outline">Attachments</h2>
+            <label className="cursor-pointer text-primary hover:text-primary-container-highest transition-colors flex items-center">
+              {isUploading ? (
+                <span className="material-symbols-outlined text-[16px] animate-spin">progress_activity</span>
+              ) : (
+                <span className="material-symbols-outlined text-[18px]">add_circle</span>
+              )}
+              <input type="file" className="hidden" onChange={handleFileUpload} disabled={isUploading} />
+            </label>
+          </div>
+          <div className="flex flex-col gap-2">
+            {attachments.length > 0 ? attachments.map((f) => (
+              <div key={f.id} className="bento-tile p-2 pl-3 flex items-center justify-between border-surface-variant hover:border-primary/30 transition-colors">
+                <a href={f.file_url} target="_blank" rel="noopener noreferrer" className="font-body-md text-[13px] text-on-surface truncate flex-1 hover:text-primary transition-colors flex items-center gap-2">
+                  <span className="material-symbols-outlined text-[16px] text-outline">description</span>
+                  <span className="truncate">{f.file_name}</span>
+                </a>
+                <button onClick={() => handleDeleteAttachment(f.file_key, f.id)} className="text-outline hover:text-error transition-colors p-1 flex items-center">
+                  <span className="material-symbols-outlined text-[16px]">close</span>
+                </button>
+              </div>
+            )) : (
+              <p className="font-body-md text-body-md text-outline">No attached files.</p>
+            )}
+          </div>
+        </div>
 
         {/* Similar Incidents */}
         <div className="mt-auto">

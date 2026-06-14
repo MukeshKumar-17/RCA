@@ -1,30 +1,42 @@
-# Logs
-logs
-*.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
-lerna-debug.log*
+# ──────────────────────────────────────────────────────────
+#  RootLens AI — .gitignore
+# ──────────────────────────────────────────────────────────
 
-node_modules
-dist
-dist-ssr
-*.local
+# ── Secrets & Environment Variables ────────────────────────
+# NEVER commit real credentials
+.env
+.env.*
+!.env.example
+backend/.env
+backend/.env.*
+!backend/.env.example
 
-# Editor directories and files
-.vscode/*
-!.vscode/extensions.json
-.idea
-.DS_Store
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
-*.sw?
+# ── Dependencies ───────────────────────────────────────────
+node_modules/
 
-# InsForge & AI agent skills
-.insforge
+# ── Build Outputs ──────────────────────────────────────────
+dist/
+dist-ssr/
+build/
+.vite/
+
+# ── Python ─────────────────────────────────────────────────
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.egg-info/
+venv/
+.venv/
+env/
+.pytest_cache/
+coverage/
+*.egg
+
+# ── InsForge & Platform ────────────────────────────────────
+.insforge/
+
+# ── AI Agent / Coding Assistant configs ────────────────────
 .agent
 .agents
 .augment
@@ -37,39 +49,46 @@ dist-ssr
 .roo
 .trae
 .windsurf
+.gemini/
 
-# Python
-__pycache__/
-*.pyc
-venv/
-.venv/
-env/
-.env
-.env.*
-!.env.example
+# ── Logs ───────────────────────────────────────────────────
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
 
-# Local data & backups
+# ── Editor & IDE ───────────────────────────────────────────
+.vscode/*
+!.vscode/extensions.json
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# ── OS Files ───────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ── Local Data & Temporary Files ──────────────────────────
 storage/
 temp/
 backend_clean/
 recovered/
-*.sql
+sample-data/
 
-# Build outputs
-build/
-
-# PDFs & Exports
+# ── PDFs & Generated Exports ──────────────────────────────
 *.pdf
 
-# OS Files
-Thumbs.db
+# ── SQL Migration Scripts (may contain DB credentials) ────
+fix_*.sql
+schema_update.sql
 
-# Test Output
-.pytest_cache/
-coverage/
-
-.vite/
-sample-data/
-# package-lock.json
+# ── Misc ───────────────────────────────────────────────────
+*.local
 AGENTS.md
-# insforge.toml
