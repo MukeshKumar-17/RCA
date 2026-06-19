@@ -93,3 +93,17 @@ schema_update.sql
 *.local
 AGENTS.md
 migrate.py
+
+# ── Databases & Credentials ───────────────────────────────
+*.sqlite
+*.sqlite3
+*.db
+*.db-shm
+*.db-wal
+*.pem
+*.key
+*.cert
+*.crt
+credentials.json
+client_secret.json
+secrets.json

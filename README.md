@@ -31,8 +31,7 @@
 - [Getting Started](#getting-started)
 - [Deployment](#deployment)
 - [Environment Variables](#environment-variables)
-- [Contributing](#contributing)
-- [License](#license)
+- [Team Information](#14-team-information)
 
 ---
 
@@ -633,8 +632,8 @@ CREATE POLICY "Users can insert their own incidents"
 ### 1. Clone the repository
 
 ```bash
-git clone https://github.com/MrFrog-v1/sample-root.git
-cd sample-root
+git clone https://github.com/MukeshKumar-17/RCA.git
+cd RCA
 ```
 
 ### 2. Set up the frontend
@@ -745,21 +744,11 @@ npx @insforge/cli compute update <service-id> \
 
 ---
 
-## Contributing
+## 14. Team Information
 
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+**Team Name: VOID SMASH**
 
----
-
-## License
-
-This project is licensed under the MIT License -- see the [LICENSE](LICENSE) file for details.
-
----
+**Team Members : MUKESH KUMAR K | HEMA DHARSHANA S J | VIJAY PRASATH R | SUMAN M**
 
 <div align="center">
 
