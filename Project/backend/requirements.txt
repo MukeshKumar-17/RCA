@@ -25,3 +25,6 @@ aiosmtplib
 weasyprint
 sendgrid
 email-validator
+
+# ── Auth ────────────────────────────────────────
+pyjwt>=2.8.0

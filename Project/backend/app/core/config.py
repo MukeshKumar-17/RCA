@@ -18,13 +18,21 @@ from pydantic import Field
 
 # ── Resolve project root (.env lives next to the backend/ folder) ──────
 _PROJECT_ROOT = Path(__file__).resolve().parents[3]  # backend/app/core → rootlens-ai
+_BACKEND_ROOT = Path(__file__).resolve().parents[2]  # backend/app/core → backend (= /app in Docker)
+
+# Find the .env file — check project root first, then backend root (Docker fallback)
+_env_file = _PROJECT_ROOT / ".env"
+if not _env_file.exists():
+    _env_file = _BACKEND_ROOT / ".env"
+if not _env_file.exists():
+    _env_file = _BACKEND_ROOT / ".env.deploy"
 
 
 class Settings(BaseSettings):
     """Central configuration sourced from environment / .env file."""
 
     model_config = SettingsConfigDict(
-        env_file=str(_PROJECT_ROOT / ".env"),
+        env_file=str(_env_file) if _env_file.exists() else None,
         env_file_encoding="utf-8",
         case_sensitive=True,
         extra="ignore",

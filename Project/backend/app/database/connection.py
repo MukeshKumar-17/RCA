@@ -26,12 +26,19 @@ elif _raw_url.startswith("postgresql+asyncpg://"):
 else:
     _async_url = _raw_url  # pass through; let SQLAlchemy raise if invalid
 
+# asyncpg doesn't support 'sslmode' in the query string, it expects connect_args
+connect_args = {}
+if "?sslmode=require" in _async_url:
+    _async_url = _async_url.replace("?sslmode=require", "")
+    connect_args["ssl"] = "require"
+
 engine = create_async_engine(
     _async_url,
     echo=False,
     pool_size=10,
     max_overflow=20,
     pool_pre_ping=True,
+    connect_args=connect_args,
 )
 
 

@@ -5,15 +5,30 @@
  * Base URL comes from the VITE_API_URL env var (defaults to localhost:8000).
  */
 
+import { insforge } from '../utils/insforge';
+
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
+
+/**
+ * Get JWT token from InsForge SDK's token manager
+ */
+async function getToken() {
+  // The SDK stores the access token in its internal TokenManager after login
+  const token = insforge.tokenManager?.getAccessToken?.();
+  return token || '';
+}
 
 /**
  * Generic JSON POST helper.
  */
 async function postJSON(path, body) {
+  const token = await getToken();
   const res = await fetch(`${API_BASE}${path}`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 
+      'Content-Type': 'application/json',
+      ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+    },
     body: JSON.stringify(body),
   });
   if (!res.ok) {
@@ -27,7 +42,12 @@ async function postJSON(path, body) {
  * Generic GET helper.
  */
 async function getJSON(path) {
-  const res = await fetch(`${API_BASE}${path}`);
+  const token = await getToken();
+  const res = await fetch(`${API_BASE}${path}`, {
+    headers: {
+      ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+    }
+  });
   if (!res.ok) {
     const err = await res.json().catch(() => ({ detail: res.statusText }));
     throw new Error(err.detail || `Request failed: ${res.status}`);
@@ -43,9 +63,14 @@ async function getJSON(path) {
  * @returns {{ type, content, length }}
  */
 export async function uploadLogs(file) {
+  const token = await getToken();
   const form = new FormData();
   form.append('file', file);
-  const res = await fetch(`${API_BASE}/upload/logs`, { method: 'POST', body: form });
+  const res = await fetch(`${API_BASE}/upload/logs`, { 
+    method: 'POST', 
+    body: form,
+    headers: { ...(token ? { 'Authorization': `Bearer ${token}` } : {}) }
+  });
   if (!res.ok) {
     const err = await res.json().catch(() => ({ detail: res.statusText }));
     throw new Error(err.detail || 'Upload failed');
@@ -57,9 +82,14 @@ export async function uploadLogs(file) {
  * Upload a timeline file via multipart form.
  */
 export async function uploadTimeline(file) {
+  const token = await getToken();
   const form = new FormData();
   form.append('file', file);
-  const res = await fetch(`${API_BASE}/upload/timeline`, { method: 'POST', body: form });
+  const res = await fetch(`${API_BASE}/upload/timeline`, { 
+    method: 'POST', 
+    body: form,
+    headers: { ...(token ? { 'Authorization': `Bearer ${token}` } : {}) }
+  });
   if (!res.ok) {
     const err = await res.json().catch(() => ({ detail: res.statusText }));
     throw new Error(err.detail || 'Upload failed');
@@ -71,17 +101,20 @@ export async function uploadTimeline(file) {
  * Upload a diff file via multipart form.
  */
 export async function uploadDiff(file) {
+  const token = await getToken();
   const form = new FormData();
   form.append('file', file);
-  const res = await fetch(`${API_BASE}/upload/diff`, { method: 'POST', body: form });
+  const res = await fetch(`${API_BASE}/upload/diff`, { 
+    method: 'POST', 
+    body: form,
+    headers: { ...(token ? { 'Authorization': `Bearer ${token}` } : {}) }
+  });
   if (!res.ok) {
     const err = await res.json().catch(() => ({ detail: res.statusText }));
     throw new Error(err.detail || 'Upload failed');
   }
   return res.json();
 }
-
-// ── Incident endpoints ────────────────────────────────────────────────
 
 /**
  * List all incidents from the backend.
@@ -97,7 +130,7 @@ export async function getIncidents() {
  * @returns {object} Full incident record
  */
 export async function getIncident(id) {
-  return getJSON(`/incidents/${id}`);
+  return getJSON(`/report/${id}`);
 }
 
 /**

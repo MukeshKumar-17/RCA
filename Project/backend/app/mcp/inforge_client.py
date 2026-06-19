@@ -12,7 +12,7 @@ Usage:
 import logging
 from typing import Any
 
-from sqlalchemy import select, or_
+from sqlalchemy import select, or_, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database.connection import async_session_factory
@@ -34,7 +34,7 @@ class InforgeClient:
         Parameters
         ----------
         data : dict
-            Must include ``title``, ``root_cause``, ``resolution``, ``summary``.
+            Must include ``title``, ``root_cause``, ``resolution``, ``summary``, ``user_id``.
 
         Returns
         -------
@@ -43,28 +43,118 @@ class InforgeClient:
         """
         async with async_session_factory() as db:
             try:
-                row = HistoricalIncident(
-                    title=data.get("title", "Untitled"),
-                    root_cause=data.get("root_cause", ""),
-                    resolution=data.get("resolution", ""),
-                    summary=data.get("summary", ""),
-                )
-                db.add(row)
+                user_id = data.get("user_id")
+                if user_id:
+                    stmt = text("""
+                        INSERT INTO historical_incidents (title, root_cause, resolution, summary, user_id)
+                        VALUES (:title, :root_cause, :resolution, :summary, CAST(:user_id AS uuid))
+                        RETURNING id, title, root_cause, resolution, summary, occurred_at
+                    """)
+                    params = {
+                        "title": data.get("title", "Untitled"),
+                        "root_cause": data.get("root_cause", ""),
+                        "resolution": data.get("resolution", ""),
+                        "summary": data.get("summary", ""),
+                        "user_id": user_id
+                    }
+                else:
+                    stmt = text("""
+                        INSERT INTO historical_incidents (title, root_cause, resolution, summary)
+                        VALUES (:title, :root_cause, :resolution, :summary)
+                        RETURNING id, title, root_cause, resolution, summary, occurred_at
+                    """)
+                    params = {
+                        "title": data.get("title", "Untitled"),
+                        "root_cause": data.get("root_cause", ""),
+                        "resolution": data.get("resolution", ""),
+                        "summary": data.get("summary", ""),
+                    }
+                result = await db.execute(stmt, params)
                 await db.commit()
-                await db.refresh(row)
-                logger.info("inforge: saved historical incident %s", row.id)
-                return {
-                    "id": str(row.id),
-                    "title": row.title,
-                    "root_cause": row.root_cause,
-                    "resolution": row.resolution,
-                    "summary": row.summary,
-                    "occurred_at": row.occurred_at.isoformat() if row.occurred_at else None,
-                }
+                row = result.fetchone()
+                if row:
+                    logger.info("inforge: saved historical incident %s", row[0])
+                    return {
+                        "id": str(row[0]),
+                        "title": row[1],
+                        "root_cause": row[2],
+                        "resolution": row[3],
+                        "summary": row[4],
+                        "occurred_at": str(row[5]) if row[5] else None,
+                    }
+                return {}
             except Exception as exc:
                 await db.rollback()
-                logger.error("inforge: failed to save incident — %s", exc)
+                logger.error("inforge: failed to save historical incident — %s", exc, exc_info=True)
                 return {}
+
+    async def save_raw_incident(self, data: dict[str, Any]) -> bool:
+        """Insert a full raw incident into the incidents table.
+        
+        This enables the frontend to query the incidents table directly using RLS.
+        """
+        import json
+        from datetime import datetime, timezone
+        async with async_session_factory() as db:
+            try:
+                # Build user_id clause — asyncpg can't CAST None to uuid reliably
+                user_id = data.get("user_id")
+                
+                # Parse created_at to a proper datetime object
+                created_at_str = data.get("created_at")
+                if created_at_str:
+                    try:
+                        created_at = datetime.fromisoformat(created_at_str.replace("Z", "+00:00"))
+                    except (ValueError, AttributeError):
+                        created_at = datetime.now(timezone.utc)
+                else:
+                    created_at = datetime.now(timezone.utc)
+
+                # Use separate SQL for with/without user_id to avoid CAST issues
+                if user_id:
+                    stmt = text("""
+                        INSERT INTO incidents (id, user_context, status, evidence_completeness, confidence_ceiling, rca, agent_outputs, created_at, user_id)
+                        VALUES (:id, :user_context, :status, :evidence_completeness, :confidence_ceiling, CAST(:rca AS jsonb), CAST(:agent_outputs AS jsonb), :created_at, CAST(:user_id AS uuid))
+                        ON CONFLICT (id) DO UPDATE SET
+                            status = EXCLUDED.status,
+                            evidence_completeness = EXCLUDED.evidence_completeness,
+                            confidence_ceiling = EXCLUDED.confidence_ceiling,
+                            rca = EXCLUDED.rca,
+                            agent_outputs = EXCLUDED.agent_outputs
+                    """)
+                else:
+                    stmt = text("""
+                        INSERT INTO incidents (id, user_context, status, evidence_completeness, confidence_ceiling, rca, agent_outputs, created_at)
+                        VALUES (:id, :user_context, :status, :evidence_completeness, :confidence_ceiling, CAST(:rca AS jsonb), CAST(:agent_outputs AS jsonb), :created_at)
+                        ON CONFLICT (id) DO UPDATE SET
+                            status = EXCLUDED.status,
+                            evidence_completeness = EXCLUDED.evidence_completeness,
+                            confidence_ceiling = EXCLUDED.confidence_ceiling,
+                            rca = EXCLUDED.rca,
+                            agent_outputs = EXCLUDED.agent_outputs
+                    """)
+
+                params = {
+                    "id": data.get("id"),
+                    "user_context": data.get("user_context", ""),
+                    "status": data.get("status", "COMPLETE"),
+                    "evidence_completeness": data.get("evidence_completeness", 0),
+                    "confidence_ceiling": data.get("confidence_ceiling"),
+                    "rca": json.dumps(data.get("rca", {})) if data.get("rca") else None,
+                    "agent_outputs": json.dumps(data.get("agent_outputs", {})) if data.get("agent_outputs") else None,
+                    "created_at": created_at,
+                }
+                if user_id:
+                    params["user_id"] = user_id
+
+                await db.execute(stmt, params)
+                await db.commit()
+                logger.info("inforge: saved raw incident %s to DB", data.get("id"))
+                return True
+            except Exception as exc:
+                await db.rollback()
+                logger.error("inforge: failed to save raw incident %s — %s", data.get("id"), exc, exc_info=True)
+                return False
 
     async def get_incident(self, incident_id: str) -> dict[str, Any]:
         """Query HistoricalIncident by id.

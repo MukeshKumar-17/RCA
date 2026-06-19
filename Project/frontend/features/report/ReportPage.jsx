@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import { getReport } from '../../data/api';
 import { useToast } from '../../components/shared/ToastContext';
 import EmailReportModal from './EmailReportModal';
+import { insforge } from '../../utils/insforge';
 
 /**
  * Color helper functions for distinct visual styling
@@ -53,6 +54,8 @@ export default function ReportPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [emailModalOpen, setEmailModalOpen] = useState(false);
+  const [attachments, setAttachments] = useState([]);
+  const [isUploading, setIsUploading] = useState(false);
   const toast = useToast();
 
   useEffect(() => {
@@ -69,6 +72,20 @@ export default function ReportPage() {
         if (!cancelled) {
           setReport(data);
           setError(null);
+        }
+
+        // Load attachments
+        try {
+          const { data: files } = await insforge.database
+            .from('incident_files')
+            .select('*')
+            .eq('incident_id', incidentId)
+            .order('uploaded_at', { ascending: false });
+          if (!cancelled && files) {
+            setAttachments(files);
+          }
+        } catch (err) {
+          console.error('Failed to load attachments', err);
         }
       } catch (err) {
         if (!cancelled) {
@@ -130,6 +147,74 @@ export default function ReportPage() {
       </div>
     );
   }
+
+  const handleFileUpload = async (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    setIsUploading(true);
+    try {
+      // 1. Upload to InsForge Storage
+      const { data: uploadData, error: uploadError } = await insforge.storage
+        .from('incident-files')
+        .uploadAuto(file);
+
+      if (uploadError) throw uploadError;
+
+      // 2. Link file to incident in Database
+      const { data: dbData, error: dbError } = await insforge.database
+        .from('incident_files')
+        .insert([{
+          incident_id: incidentId,
+          file_name: file.name,
+          file_url: uploadData.url,
+          file_key: uploadData.key,
+        }]);
+
+      if (dbError) throw dbError;
+
+      toast.success('File attached successfully');
+      
+      // Refresh attachments
+      const { data: newFiles } = await insforge.database
+        .from('incident_files')
+        .select('*')
+        .eq('incident_id', incidentId)
+        .order('uploaded_at', { ascending: false });
+      if (newFiles) setAttachments(newFiles);
+      
+    } catch (err) {
+      toast.error(`Upload failed: ${err.message}`);
+    } finally {
+      setIsUploading(false);
+      // Reset input
+      event.target.value = '';
+    }
+  };
+
+  const handleDeleteAttachment = async (fileKey, fileId) => {
+    try {
+      // 1. Delete from Storage
+      const { error: storageError } = await insforge.storage
+        .from('incident-files')
+        .remove(fileKey);
+      
+      if (storageError) throw storageError;
+
+      // 2. Delete from Database
+      const { error: dbError } = await insforge.database
+        .from('incident_files')
+        .delete()
+        .eq('id', fileId);
+        
+      if (dbError) throw dbError;
+
+      setAttachments(prev => prev.filter(f => f.id !== fileId));
+      toast.success('File removed');
+    } catch (err) {
+      toast.error(`Delete failed: ${err.message}`);
+    }
+  };
 
   // Extract real RCA data
   const rca = report.rca || {};
@@ -400,14 +485,49 @@ export default function ReportPage() {
           )}
         </div>
 
+        {/* Attachments */}
+        <div className="bento-tile p-8 bg-surface-container-lowest">
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-3">
+              <span className="material-symbols-outlined text-outline text-[24px]">attachment</span>
+              <h2 className="font-label-md text-label-md uppercase tracking-wider text-outline">Attachments</h2>
+            </div>
+            <label className="cursor-pointer bg-primary hover:bg-[#00513e] text-on-primary font-label-md py-2 px-4 rounded-full transition-colors flex items-center gap-2">
+              {isUploading ? (
+                <span className="material-symbols-outlined text-[18px] animate-spin">progress_activity</span>
+              ) : (
+                <span className="material-symbols-outlined text-[18px]">upload</span>
+              )}
+              Upload File
+              <input type="file" className="hidden" onChange={handleFileUpload} disabled={isUploading} />
+            </label>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {attachments.length > 0 ? attachments.map((f) => (
+              <div key={f.id} className="flex items-center justify-between p-4 rounded-xl bg-surface-container border border-surface-variant hover:border-primary/50 transition-colors group">
+                <a href={f.file_url} target="_blank" rel="noopener noreferrer" className="font-body-md text-[14px] text-on-surface truncate flex-1 hover:text-primary transition-colors flex items-center gap-3">
+                  <span className="material-symbols-outlined text-[20px] text-primary">description</span>
+                  <span className="truncate">{f.file_name}</span>
+                </a>
+                <button onClick={() => handleDeleteAttachment(f.file_key, f.id)} className="text-outline hover:text-error transition-colors p-2 flex items-center ml-2 opacity-0 group-hover:opacity-100 bg-surface-container-highest rounded-full">
+                  <span className="material-symbols-outlined text-[16px]">delete</span>
+                </button>
+              </div>
+            )) : (
+              <p className="font-body-md text-body-md text-outline col-span-full py-4 text-center">No files attached to this incident.</p>
+            )}
+          </div>
+        </div>
+
         {/* Navigation */}
         <div className="flex flex-col sm:flex-row justify-between items-center gap-4 pt-6 pb-12">
           <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
             <button 
               onClick={async () => {
                 try {
+                  const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
                   const response = await fetch(
-                    `http://localhost:8000/api/report/${incidentId}/export-pdf`
+                    `${API_BASE}/report/${incidentId}/export-pdf`
                   );
                   if (!response.ok) throw new Error('PDF export failed');
                   const blob = await response.blob();

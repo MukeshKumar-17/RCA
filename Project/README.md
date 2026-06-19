@@ -4,6 +4,9 @@
 
 ### Intelligent Root Cause Analysis Platform
 
+[![Live Demo](https://img.shields.io/badge/Live_Demo-yzb8iiq6.insforge.site-0ea5e9?style=for-the-badge)](https://yzb8iiq6.insforge.site)
+[![Backend](https://img.shields.io/badge/Backend-Fly.io-8b5cf6?style=for-the-badge)](https://rootlens-backend-73624a2a-d0c4-45ce-8f5c-628c7c020042.fly.dev/health)
+[![Built with](https://img.shields.io/badge/Built_with-InsForge-f97316?style=for-the-badge)](https://insforge.com)
 
 **RootLens AI** is an AI-powered incident investigation platform that automates **Root Cause Analysis (RCA)** for production incidents. Upload your logs, timelines, and code diffs — and let a multi-agent AI pipeline analyze, correlate, and synthesize a comprehensive RCA report in seconds.
 

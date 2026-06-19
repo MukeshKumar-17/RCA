@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../components/shared/AuthProvider';
 import loginIllustration from './login_illustration.png';
 
 export default function LoginPage() {
   const navigate = useNavigate();
+  const { signInWithPassword, signUp, signInWithGoogle } = useAuth();
 
   // Responsive state
   const [isMobile, setIsMobile] = useState(false);
@@ -18,6 +20,7 @@ export default function LoginPage() {
   }, []);
 
   // Form states
+  const [isSignUp, setIsSignUp] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -27,48 +30,42 @@ export default function LoginPage() {
   const [emailFocused, setEmailFocused] = useState(false);
   const [passwordFocused, setPasswordFocused] = useState(false);
   const [btnHovered, setBtnHovered] = useState(false);
+  const [googleBtnHovered, setGoogleBtnHovered] = useState(false);
   const [signupLinkHovered, setSignupLinkHovered] = useState(false);
   const [forgotHovered, setForgotHovered] = useState(false);
 
   // Authentication submission
-  const handleLogin = async (e) => {
+  const handleAuth = async (e) => {
     if (e) e.preventDefault();
     setLoading(true);
     setError('');
 
     try {
-      const response = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email, password }),
-      });
-
-      const data = await response.json().catch(() => ({}));
-
-      if (response.ok) {
-        localStorage.setItem('token', data.access_token);
-        localStorage.setItem(
-          'user',
-          JSON.stringify({
-            id: data.user_id,
-            name: data.name,
-            email: data.email,
-          })
-        );
-        navigate('/dashboard', { replace: true });
-      } else if (response.status === 404) {
-        // Auth endpoint not yet implemented — allow pass-through to dashboard
-        navigate('/dashboard', { replace: true });
+      let result;
+      if (isSignUp) {
+        result = await signUp(email, password);
       } else {
-        setError(data.detail || 'Invalid email or password');
+        result = await signInWithPassword(email, password);
+      }
+
+      if (result.error) {
+        setError(result.error.message);
+      } else {
+        navigate('/dashboard', { replace: true });
       }
     } catch (err) {
-      // Network error or auth not available — fallback to dashboard
-      navigate('/dashboard');
+      setError(err.message || 'Authentication failed');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleGoogle = async () => {
+    try {
+      const { error } = await signInWithGoogle();
+      if (error) setError(error.message);
+    } catch (err) {
+      setError('Google Sign In failed');
     }
   };
 
@@ -291,10 +288,10 @@ export default function LoginPage() {
         </div>
 
         <div style={styles.card}>
-          <h1 style={styles.title}>Welcome Back</h1>
-          <p style={styles.subtitle}>Access your incident analysis dashboard.</p>
+          <h1 style={styles.title}>{isSignUp ? 'Create Account' : 'Welcome Back'}</h1>
+          <p style={styles.subtitle}>{isSignUp ? 'Sign up to start investigating.' : 'Access your incident analysis dashboard.'}</p>
 
-          <form onSubmit={handleLogin}>
+          <form onSubmit={handleAuth}>
             {/* Email field */}
             <div style={styles.formGroup}>
               <label style={styles.label} htmlFor="email-input">
@@ -322,14 +319,16 @@ export default function LoginPage() {
                 <label style={styles.label} htmlFor="password-input">
                   Password
                 </label>
-                <span
-                  style={styles.forgotLink}
-                  onClick={() => {}}
-                  onMouseEnter={() => setForgotHovered(true)}
-                  onMouseLeave={() => setForgotHovered(false)}
-                >
-                  Forgot Password?
-                </span>
+                {!isSignUp && (
+                  <span
+                    style={styles.forgotLink}
+                    onClick={() => {}}
+                    onMouseEnter={() => setForgotHovered(true)}
+                    onMouseLeave={() => setForgotHovered(false)}
+                  >
+                    Forgot Password?
+                  </span>
+                )}
               </div>
               <div style={styles.inputContainer}>
                 <span style={styles.icon}>🔒</span>
@@ -358,20 +357,40 @@ export default function LoginPage() {
               onMouseEnter={() => setBtnHovered(true)}
               onMouseLeave={() => setBtnHovered(false)}
             >
-              {loading ? 'Signing In...' : 'Sign In →'}
+              {loading ? (isSignUp ? 'Creating...' : 'Signing In...') : (isSignUp ? 'Sign Up →' : 'Sign In →')}
+            </button>
+            
+            {/* Google OAuth Button */}
+            <button
+              type="button"
+              disabled={loading}
+              onClick={handleGoogle}
+              style={{
+                ...styles.submitBtn,
+                marginTop: '12px',
+                background: googleBtnHovered ? '#f8f9fa' : 'white',
+                color: colors.textPrimary,
+                border: `1px solid ${colors.border}`,
+                boxShadow: 'none',
+              }}
+              onMouseEnter={() => setGoogleBtnHovered(true)}
+              onMouseLeave={() => setGoogleBtnHovered(false)}
+            >
+              <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" style={{width: 18, height: 18, marginRight: 8}} />
+              Continue with Google
             </button>
           </form>
 
           {/* Bottom Link */}
           <p style={styles.bottomText}>
-            Don't have an account?{' '}
+            {isSignUp ? 'Already have an account? ' : "Don't have an account? "}
             <span
               style={styles.signupLink}
-              onClick={() => {}}
+              onClick={() => setIsSignUp(!isSignUp)}
               onMouseEnter={() => setSignupLinkHovered(true)}
               onMouseLeave={() => setSignupLinkHovered(false)}
             >
-              Create an account
+              {isSignUp ? 'Sign in' : 'Create an account'}
             </span>
           </p>
         </div>

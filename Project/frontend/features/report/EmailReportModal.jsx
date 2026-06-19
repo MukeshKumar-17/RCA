@@ -20,8 +20,9 @@ export default function EmailReportModal({ isOpen, onClose, incidentId, incident
     setSuccess(false);
 
     try {
+      const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
       const response = await fetch(
-        `http://localhost:8000/api/report/${incidentId}/send-email`,
+        `${API_BASE}/report/${incidentId}/send-email`,
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },

@@ -13,7 +13,7 @@ services:
     restart: unless-stopped
     environment:
       POSTGRES_USER: rootlens
-      POSTGRES_PASSWORD: rootlens_secret
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-rootlens_secret}
       POSTGRES_DB: rootlens
     ports:
       - "5432:5432"

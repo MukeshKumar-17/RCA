@@ -1,5 +1,6 @@
 import { ToastProvider } from './components/shared/ToastContext';
-import { BrowserRouter, Routes, Route, NavLink, useLocation, useNavigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, NavLink, useLocation, useNavigate, Navigate } from 'react-router-dom';
+import { AuthProvider, useAuth } from './components/shared/AuthProvider';
 import DashboardPage from './features/dashboard/DashboardPage';
 import InvestigationPage from './features/investigation/InvestigationPage';
 import ReportPage from './features/report/ReportPage';
@@ -16,12 +17,20 @@ const navItems = [
   { path: '/history', label: 'Historical', icon: 'history' },
 ];
 
+function RequireAuth({ children }) {
+  const { user, loading } = useAuth();
+  if (loading) return null;
+  if (!user) return <Navigate to="/login" replace />;
+  return children;
+}
+
 function AppLayout() {
   const location = useLocation();
   const navigate = useNavigate();
+  const { signOut } = useAuth();
 
   return (
-    <>
+    <RequireAuth>
       {/* ── Sidebar ── */}
       <nav className="bg-surface border-r border-outline-variant flex flex-col h-screen py-6 px-4 space-y-8 w-64 hidden md:flex shrink-0 fixed left-0 top-0 z-50">
         {/* Header */}
@@ -63,6 +72,15 @@ function AppLayout() {
           })}
         </ul>
 
+        <div className="mt-auto border-t border-outline-variant pt-4">
+          <button 
+            onClick={signOut}
+            className="flex items-center space-x-3 px-3 py-2.5 w-full rounded-full transition-all duration-200 text-on-surface-variant hover:text-error hover:bg-error-container/30"
+          >
+            <span className="material-symbols-outlined">logout</span>
+            <span className="text-label-md font-label-md">Sign Out</span>
+          </button>
+        </div>
       </nav>
 
       {/* ── Main Content ── */}
@@ -83,22 +101,24 @@ function AppLayout() {
           </Routes>
         </div>
       </main>
-    </>
+    </RequireAuth>
   );
 }
 
 export default function App() {
   return (
-    <BrowserRouter>
-      <ToastProvider>
-        <Routes>
-          {/* Public routes — no sidebar */}
-          <Route path="/" element={<LandingPage />} />
-          <Route path="/login" element={<LoginPage />} />
-          {/* Authenticated routes — with sidebar layout */}
-          <Route path="/*" element={<AppLayout />} />
-        </Routes>
-      </ToastProvider>
-    </BrowserRouter>
+    <AuthProvider>
+      <BrowserRouter>
+        <ToastProvider>
+          <Routes>
+            {/* Public routes — no sidebar */}
+            <Route path="/" element={<LandingPage />} />
+            <Route path="/login" element={<LoginPage />} />
+            {/* Authenticated routes — with sidebar layout */}
+            <Route path="/*" element={<AppLayout />} />
+          </Routes>
+        </ToastProvider>
+      </BrowserRouter>
+    </AuthProvider>
   );
 }

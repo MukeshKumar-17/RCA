@@ -76,6 +76,7 @@ async def save_incident_to_mcp(
     evidence_completeness: int = 0,
     confidence_ceiling: int | None = None,
     agent_outputs: dict | None = None,
+    user_id: str | None = None,
 ) -> dict[str, Any]:
     """Persist a completed incident record to local PostgreSQL + in-memory store.
 
@@ -95,6 +96,8 @@ async def save_incident_to_mcp(
         Maximum confidence the RCA can achieve given available evidence.
     agent_outputs : dict or None
         Raw outputs from the specialist agents.
+    user_id : str or None
+        The InsForge user ID extracted from the JWT token.
 
     Returns
     -------
@@ -112,6 +115,7 @@ async def save_incident_to_mcp(
         "rca": rca,
         "agent_outputs": agent_outputs,
         "created_at": datetime.now(timezone.utc).isoformat(),
+        "user_id": user_id,
     }
 
     error = None
@@ -135,9 +139,14 @@ async def save_incident_to_mcp(
                 rca.get("prevention", {}).get("prevention_improvements", [])
             ) if rca and isinstance(rca, dict) else "",
             "summary": exec_summary or "No summary available.",
+            "user_id": user_id,
         }
         await inforge.save_incident(pg_data)
-        logger.info("mcp_tool: saved incident %s to PostgreSQL", incident_id)
+        logger.info("mcp_tool: saved incident %s to PostgreSQL historical", incident_id)
+        
+        # Also save the raw incident record to PostgreSQL so the frontend can query it
+        await inforge.save_raw_incident(record)
+        logger.info("mcp_tool: saved incident %s to PostgreSQL incidents", incident_id)
     except Exception as exc:
         logger.error("mcp_tool: failed to save incident to PostgreSQL — %s", exc)
         error = str(exc)
@@ -160,15 +169,97 @@ async def save_incident_to_mcp(
 # ── Tool: get incident from MCP ───────────────────────────────────────
 
 async def get_incident_from_mcp(incident_id: str) -> dict[str, Any] | None:
-    """Fetch a single incident by id from the in-memory local store.
+    """Fetch a single incident by id.
 
-    The in-memory store is the primary lookup for full incident records
-    (including rca, agent_outputs, etc.) since those fields aren't
-    stored in the historical_incidents table.
+    Tries the in-memory local store first (fast), then falls back to
+    a direct SQL query on the ``incidents`` table (survives restarts).
 
     Returns
     -------
     dict or None
         The incident record, or None if not found.
     """
-    return store.get(incident_id)
+    # 1. Try in-memory store (fast, always has agent_outputs etc.)
+    record = store.get(incident_id)
+    if record:
+        return record
+
+    # 2. Fall back to direct DB query (bypasses RLS since we use postgres superuser)
+    try:
+        import json
+        from sqlalchemy import text
+        from app.database.connection import async_session_factory
+
+        async with async_session_factory() as db:
+            stmt = text("""
+                SELECT id, user_context, status, evidence_completeness,
+                       confidence_ceiling, rca, agent_outputs, created_at, user_id
+                FROM incidents
+                WHERE id = :id
+            """)
+            result = await db.execute(stmt, {"id": incident_id})
+            row = result.fetchone()
+            if row:
+                record = {
+                    "id": str(row[0]),
+                    "user_context": row[1],
+                    "status": row[2],
+                    "evidence_completeness": row[3],
+                    "confidence_ceiling": row[4],
+                    "rca": row[5] if isinstance(row[5], dict) else (json.loads(row[5]) if row[5] else None),
+                    "agent_outputs": row[6] if isinstance(row[6], dict) else (json.loads(row[6]) if row[6] else None),
+                    "created_at": str(row[7]) if row[7] else None,
+                    "user_id": str(row[8]) if row[8] else None,
+                }
+                # Cache it in the in-memory store for future fast lookups
+                store.save(record)
+                logger.info("mcp_tool: loaded incident %s from DB (cache miss)", incident_id)
+                return record
+    except Exception as exc:
+        logger.error("mcp_tool: DB fallback failed for incident %s — %s", incident_id, exc)
+
+    return None
+
+
+# ── Tool: list all incidents ──────────────────────────────────────────
+
+async def list_incidents_from_mcp() -> list[dict[str, Any]]:
+    """List all incidents from the database.
+
+    Returns
+    -------
+    list[dict]
+        All incident records, ordered by created_at descending.
+    """
+    try:
+        import json
+        from sqlalchemy import text
+        from app.database.connection import async_session_factory
+
+        async with async_session_factory() as db:
+            stmt = text("""
+                SELECT id, user_context, status, evidence_completeness,
+                       confidence_ceiling, rca, agent_outputs, created_at, user_id
+                FROM incidents
+                ORDER BY created_at DESC NULLS LAST
+            """)
+            result = await db.execute(stmt)
+            rows = result.fetchall()
+            incidents = []
+            for row in rows:
+                incidents.append({
+                    "id": str(row[0]),
+                    "user_context": row[1],
+                    "status": row[2],
+                    "evidence_completeness": row[3],
+                    "confidence_ceiling": row[4],
+                    "rca": row[5] if isinstance(row[5], dict) else (json.loads(row[5]) if row[5] else None),
+                    "agent_outputs": row[6] if isinstance(row[6], dict) else (json.loads(row[6]) if row[6] else None),
+                    "created_at": str(row[7]) if row[7] else None,
+                    "user_id": str(row[8]) if row[8] else None,
+                })
+            return incidents
+    except Exception as exc:
+        logger.error("mcp_tool: failed to list incidents — %s", exc)
+        return []
+
